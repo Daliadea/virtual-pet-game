@@ -48,89 +48,23 @@ const PetSprite = ({ pet, onPetClick }) => {
     }
   };
 
-  // Drag and drop functionality
-  const handleMouseDown = (e) => {
-    e.preventDefault();
-    // Stop autonomous movement immediately
-    if (movementTimerRef.current) {
-      clearTimeout(movementTimerRef.current);
-      movementTimerRef.current = null;
-    }
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX,
-      y: e.clientY
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    
-    const deltaX = e.clientX - dragStart.x;
-    const deltaY = e.clientY - dragStart.y;
-    
-    // Convert pixel movement to percentage
-    const percentX = (deltaX / window.innerWidth) * 100;
-    const percentY = (deltaY / window.innerHeight) * 100;
-    
-    const newX = Math.max(20, Math.min(80, petPosition.x + percentX));
-    const newY = Math.max(20, Math.min(80, petPosition.y + percentY));
-    
-    setPetPosition({ x: newX, y: newY });
-    setDragStart({ x: e.clientX, y: e.clientY });
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      // Position is already set in handleMouseMove, so it will stick
-      // Resume autonomous movement after dragging
-      scheduleNextMovement();
-    }
-  };
-
   // Schedule next autonomous movement
   const scheduleNextMovement = () => {
     if (movementTimerRef.current) {
       clearTimeout(movementTimerRef.current);
     }
-    const nextMoveDelay = 10000 + Math.random() * 15000; // 10-25 seconds
+    const nextMoveDelay = 8000 + Math.random() * 12000; // 8-20 seconds (good balance)
     movementTimerRef.current = setTimeout(movePetRandomly, nextMoveDelay);
   };
 
-  // Add event listeners for drag and drop
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-    
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragStart, petPosition]);
-
-  // Autonomous movement function
+  // Autonomous movement function - NOT USED (using Framer Motion drag instead)
   const movePetRandomly = () => {
-    if (pet.isSleeping || isDragging) return; // Don't move when sleeping or being dragged
-    
-    // Calculate moderate offset from current position (natural wandering effect)
-    const offsetX = (Math.random() - 0.5) * 30; // -15% to +15%
-    const offsetY = (Math.random() - 0.5) * 30; // -15% to +15%
-    
-    const newX = Math.max(20, Math.min(80, petPosition.x + offsetX)); // Keep within 20%-80%
-    const newY = Math.max(20, Math.min(80, petPosition.y + offsetY)); // Keep within 20%-80%
-    
-    setPetPosition({ x: newX, y: newY });
-    
-    // Schedule next movement
     scheduleNextMovement();
   };
 
   // Start autonomous movement on component mount
   useEffect(() => {
-    const initialDelay = 3000 + Math.random() * 2000; // 3-5 seconds initial delay
+    const initialDelay = 5000 + Math.random() * 5000; // 5-10 seconds initial delay
     movementTimerRef.current = setTimeout(movePetRandomly, initialDelay);
     
     return () => {
@@ -141,18 +75,30 @@ const PetSprite = ({ pet, onPetClick }) => {
   }, []);
 
   return (
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-      <div 
-        id="pet-container"
-        ref={petContainerRef}
-        className="cursor-move relative"
-        style={{
-          left: `${petPosition.x}%`,
-          top: `${petPosition.y}%`,
-          transform: 'translate(-50%, -50%)'
-        }}
-        onMouseDown={handleMouseDown}
-      >
+    <motion.div 
+      id="pet-container"
+      ref={petContainerRef}
+      className="absolute cursor-move"
+      style={{
+        left: `${window.innerWidth / 2}px`,
+        top: `${window.innerHeight / 2}px`,
+        transform: 'translate(-50%, -50%)'
+      }}
+      drag
+      dragMomentum={false}
+      dragElastic={0}
+      onDragStart={() => {
+        if (movementTimerRef.current) {
+          clearTimeout(movementTimerRef.current);
+          movementTimerRef.current = null;
+        }
+        setIsDragging(true);
+      }}
+      onDragEnd={() => {
+        setIsDragging(false);
+        scheduleNextMovement();
+      }}
+    >
       {/* Pet Shadow */}
       <motion.div
         animate={{
@@ -331,8 +277,7 @@ const PetSprite = ({ pet, onPetClick }) => {
         >
         <span className="text-sm font-bold text-pet-purple">{petName}</span>
       </motion.div>
-      </div>
-    </div>
+    </motion.div>
   );
 };
 
