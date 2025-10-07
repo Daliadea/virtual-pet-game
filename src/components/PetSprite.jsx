@@ -48,6 +48,23 @@ const PetSprite = ({ pet, onPetClick }) => {
     }
   };
 
+  // Autonomous movement function
+  const movePetRandomly = () => {
+    if (pet.isSleeping || isDragging) {
+      scheduleNextMovement();
+      return;
+    }
+    
+    // Move pet to a new random position
+    const newX = 20 + Math.random() * 60; // 20% to 80% of screen width
+    const newY = 20 + Math.random() * 60; // 20% to 80% of screen height
+    
+    setPetPosition({ x: newX, y: newY });
+    
+    // Schedule next movement
+    scheduleNextMovement();
+  };
+
   // Schedule next autonomous movement
   const scheduleNextMovement = () => {
     if (movementTimerRef.current) {
@@ -55,11 +72,6 @@ const PetSprite = ({ pet, onPetClick }) => {
     }
     const nextMoveDelay = 8000 + Math.random() * 12000; // 8-20 seconds (good balance)
     movementTimerRef.current = setTimeout(movePetRandomly, nextMoveDelay);
-  };
-
-  // Autonomous movement function - NOT USED (using Framer Motion drag instead)
-  const movePetRandomly = () => {
-    scheduleNextMovement();
   };
 
   // Start autonomous movement on component mount
@@ -78,15 +90,17 @@ const PetSprite = ({ pet, onPetClick }) => {
     <motion.div 
       id="pet-container"
       ref={petContainerRef}
-      className="absolute cursor-move"
+      className="fixed cursor-move"
       style={{
-        left: `${window.innerWidth / 2}px`,
-        top: `${window.innerHeight / 2}px`,
-        transform: 'translate(-50%, -50%)'
+        left: `${petPosition.x || 50}%`,
+        top: `${petPosition.y || 50}%`,
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10
       }}
       drag
       dragMomentum={false}
       dragElastic={0}
+      whileDrag={{ scale: 1.05 }}
       onDragStart={() => {
         if (movementTimerRef.current) {
           clearTimeout(movementTimerRef.current);
@@ -96,6 +110,7 @@ const PetSprite = ({ pet, onPetClick }) => {
       }}
       onDragEnd={() => {
         setIsDragging(false);
+        // CRITICAL: Resume autonomous movement after dragging
         scheduleNextMovement();
       }}
     >
