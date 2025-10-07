@@ -167,30 +167,46 @@ function App() {
       timerRef = setTimeout(() => {
         if (cancelled) return;
 
-        // CRITICAL FIX: Check if a letter is already on screen OR if scrapbook is open OR page is hidden
-        if (isLetterOnScreen || activeLetters.length > 0 || showScrapbook || !isPageVisible) {
-          console.log('⏸️ Skipping spawn - letter on screen:', activeLetters.length > 0, 'scrapbook open:', showScrapbook, 'page visible:', isPageVisible);
-          // Retry in 5 seconds instead of the full interval
+        // CRITICAL: PRIMARY CHECK - NEVER spawn if ANY letters exist
+        if (activeLetters.length > 0) {
+          console.log('🚫 BLOCKED: ' + activeLetters.length + ' letter(s) still on screen - retrying in 5s');
+          timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
+          return;
+        }
+
+        // Secondary check - also block if scrapbook is open
+        if (showScrapbook) {
+          console.log('📖 BLOCKED: Scrapbook is open - retrying in 5s');
           timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
           return;
         }
 
         const roll = Math.random();
-        console.log('Letter spawn check - rolled:', roll.toFixed(2), 'need <', spawnChance.toFixed(2));
+        console.log('🎲 Spawn check - rolled:', roll.toFixed(2), 'need <', spawnChance.toFixed(2));
         
         // Check if letter should spawn based on chance
         if (roll < spawnChance) {
           const allLetters = generateLoveLetters();
           
-          // CRITICAL FIX: Prevent duplicate consecutive messages
+          // CRITICAL: Prevent duplicate consecutive messages with guaranteed different index
           let nextLetterIndex;
-          const maxAttempts = 10; // Prevent infinite loop
+          const maxAttempts = 20;
           let attempts = 0;
           
           do {
             nextLetterIndex = Math.floor(Math.random() * allLetters.length);
             attempts++;
-          } while (nextLetterIndex === lastLetterIndexRef.current && attempts < maxAttempts && allLetters.length > 1);
+          } while (
+            nextLetterIndex === lastLetterIndexRef.current && 
+            attempts < maxAttempts && 
+            allLetters.length > 1
+          );
+          
+          // Force a different index if we're stuck on the same one
+          if (nextLetterIndex === lastLetterIndexRef.current && allLetters.length > 1) {
+            nextLetterIndex = (lastLetterIndexRef.current + 1) % allLetters.length;
+            console.log('🔀 Forced different index to avoid duplicate');
+          }
           
           // Remember this index for next time
           lastLetterIndexRef.current = nextLetterIndex;
@@ -202,11 +218,18 @@ function App() {
             content: allLetters[nextLetterIndex] || "I love you more than words can express! 💕"
           };
           
-          console.log('✉️ SPAWNING LETTER #' + nextLetterIndex + ' at x:', newLetter.x.toFixed(0), 'y:', newLetter.y);
-          setActiveLetters(prev => [...prev, newLetter]);
-          setIsLetterOnScreen(true); // CRITICAL: Mark that a letter is now on screen
+          console.log('✅ SPAWNING LETTER #' + nextLetterIndex + ' (previous was #' + (lastLetterIndexRef.current === nextLetterIndex ? 'same' : lastLetterIndexRef.current) + ')');
+          console.log('📝 Message preview:', newLetter.content.substring(0, 50) + '...');
+          
+          // Double-check before actually spawning
+          if (activeLetters.length === 0) {
+            setActiveLetters(prev => [...prev, newLetter]);
+            setIsLetterOnScreen(true);
+          } else {
+            console.log('⚠️ ABORT: Letter appeared while preparing to spawn!');
+          }
         } else {
-          console.log('❌ Letter spawn failed chance check');
+          console.log('❌ Spawn chance failed');
         }
 
         // Chain next spawn check
@@ -274,11 +297,17 @@ function App() {
 
   // Handle letter collection
   const handleLetterCollect = useCallback((letterId, content) => {
+    console.log('💖 Letter collected! Removing from screen...');
     setCollectedLetters(prev => [...prev, { id: letterId, content, timestamp: Date.now() }]);
-    setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
+    setActiveLetters(prev => {
+      const filtered = prev.filter(letter => letter.id !== letterId);
+      console.log('📊 Active letters after collection:', filtered.length);
+      return filtered;
+    });
     
-    // CRITICAL FIX: Mark that letter is no longer on screen (allow new spawns)
+    // CRITICAL: Mark that letter is no longer on screen (allow new spawns)
     setIsLetterOnScreen(false);
+    console.log('✅ Letter flag cleared - spawning allowed again');
     
     // Trigger scrapbook glow animation
     setScrapbookGlow(true);
@@ -287,9 +316,16 @@ function App() {
 
   // Handle letter removal (when it falls off screen)
   const handleActiveLetterRemove = useCallback((letterId) => {
-    setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
-    // CRITICAL FIX: Mark that letter is no longer on screen (allow new spawns)
+    console.log('🗑️ Letter fell off screen, removing...');
+    setActiveLetters(prev => {
+      const filtered = prev.filter(letter => letter.id !== letterId);
+      console.log('📊 Active letters after removal:', filtered.length);
+      return filtered;
+    });
+    
+    // CRITICAL: Mark that letter is no longer on screen (allow new spawns)
     setIsLetterOnScreen(false);
+    console.log('✅ Letter flag cleared - spawning allowed again');
   }, []);
 
   // Handle letter removal from scrapbook
@@ -335,25 +371,36 @@ function App() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
-          // Respect all blocking conditions
-          if (isLetterOnScreen || activeLetters.length > 0 || showScrapbook || !isPageVisible) {
-            console.log('Cannot spawn - blocked by:', {
-              letterOnScreen: isLetterOnScreen,
-              activeCount: activeLetters.length,
-              scrapbookOpen: showScrapbook,
-              pageVisible: isPageVisible
-            });
+          // CRITICAL: PRIMARY CHECK - Block if ANY letters exist
+          if (activeLetters.length > 0) {
+            console.log('🚫 MANUAL SPAWN BLOCKED: ' + activeLetters.length + ' letter(s) already on screen');
+            return;
+          }
+          
+          // Also block if scrapbook is open
+          if (showScrapbook) {
+            console.log('🚫 MANUAL SPAWN BLOCKED: Scrapbook is open');
             return;
           }
           
           // Use a real love letter from the list
           const allLetters = generateLoveLetters();
           
-          // Prevent duplicate consecutive messages
+          // CRITICAL: Prevent duplicate consecutive messages
           let randomIndex;
+          const maxAttempts = 20;
+          let attempts = 0;
+          
           do {
             randomIndex = Math.floor(Math.random() * allLetters.length);
-          } while (randomIndex === lastLetterIndexRef.current && allLetters.length > 1);
+            attempts++;
+          } while (randomIndex === lastLetterIndexRef.current && attempts < maxAttempts && allLetters.length > 1);
+          
+          // Force a different index if we're stuck on the same one
+          if (randomIndex === lastLetterIndexRef.current && allLetters.length > 1) {
+            randomIndex = (lastLetterIndexRef.current + 1) % allLetters.length;
+            console.log('🔀 Manual spawn: Forced different index');
+          }
           
           lastLetterIndexRef.current = randomIndex;
           
@@ -363,6 +410,10 @@ function App() {
             y: -50,
             content: allLetters[randomIndex] || "I love you more than words can express! 💕"
           };
+          
+          console.log('🖱️ MANUAL SPAWN: Letter #' + randomIndex);
+          console.log('📝 Message:', newLetter.content.substring(0, 50) + '...');
+          
           setActiveLetters(prev => [...prev, newLetter]);
           setIsLetterOnScreen(true);
         }}
