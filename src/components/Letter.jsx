@@ -56,10 +56,10 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           rotate: -180
         }}
         animate={{ 
-          x: isMovingToScrapbook ? window.innerWidth - 200 : letter.x, // Move to scrapbook button area
+          x: isMovingToScrapbook ? window.innerWidth - 150 : letter.x, // Move to scrapbook button area
           y: isMovingToScrapbook ? 50 : letter.y, // Move to top of screen where scrapbook button is
-          scale: isMovingToScrapbook ? 0.5 : 1,
-          rotate: isFalling ? [0, -5, 5, 0] : 0,
+          scale: isMovingToScrapbook ? 0.3 : 1,
+          rotate: isMovingToScrapbook ? 360 : (isFalling ? [0, -5, 5, 0] : 0),
         }}
         transition={{
           scale: { duration: 0.5, type: "spring" },
