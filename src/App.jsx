@@ -161,11 +161,28 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden flex flex-col" style={{
+      minHeight: '100vh',
+      position: 'relative',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       <Room />
       
-      {/* Pet */}
-      <Pet pet={pet} />
+      {/* Main Game Container */}
+      <div className="flex-1 flex flex-col justify-center items-center relative z-10" style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+        zIndex: 10
+      }}>
+        {/* Pet */}
+        <Pet pet={pet} />
+      </div>
       
       {/* Controls */}
       <Controls 

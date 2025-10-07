@@ -33,7 +33,14 @@ const Pet = ({ pet }) => {
   };
 
   return (
-    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+    <div className="flex flex-col items-center justify-center" style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      padding: '2rem'
+    }}>
       {/* Pet Shadow */}
       <motion.div
         animate={{
@@ -56,6 +63,15 @@ const Pet = ({ pet }) => {
           ease: "easeInOut"
         }}
         className={`relative bg-gradient-to-br ${getPetColor()} rounded-full p-6 shadow-xl`}
+        style={{
+          position: 'relative',
+          borderRadius: '50%',
+          padding: '1.5rem',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          background: `linear-gradient(135deg, ${getPetColor().includes('pet-green') ? '#98FB98, #87CEEB' : 
+                      getPetColor().includes('pet-yellow') ? '#FFE4B5, #98FB98' : 
+                      getPetColor().includes('pet-pink') ? '#FFB6C1, #DDA0DD' : '#FFB6C1, #87CEEB'})`
+        }}
       >
         {/* Pet Face */}
         <div className="text-center">
