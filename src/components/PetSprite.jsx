@@ -50,8 +50,14 @@ const PetSprite = ({ pet, onPetClick }) => {
 
   // Autonomous movement function
   const movePetRandomly = () => {
+    // Don't move when sleeping or being dragged
     if (pet.isSleeping || isDragging) {
-      scheduleNextMovement();
+      // If sleeping, check again in a few seconds
+      if (pet.isSleeping) {
+        movementTimerRef.current = setTimeout(movePetRandomly, 3000);
+      } else {
+        scheduleNextMovement();
+      }
       return;
     }
     

@@ -56,15 +56,15 @@ function App() {
     }
   }, [collectedLetters.length, allLettersUnlocked]);
 
-  // Pet needs decay over time
+  // Pet needs decay over time (MUCH SLOWER for better game balance)
   useEffect(() => {
     const interval = setInterval(() => {
       if (!pet.isSleeping) {
         setPet(prev => ({
           ...prev,
-          hunger: Math.max(0, prev.hunger - 1),
-          happiness: Math.max(0, prev.happiness - 0.5),
-          energy: Math.max(0, prev.energy - 0.8)
+          hunger: Math.max(0, prev.hunger - 0.3), // Reduced from 1 to 0.3
+          happiness: Math.max(0, prev.happiness - 0.2), // Reduced from 0.5 to 0.2
+          energy: Math.max(0, prev.energy - 0.25) // Reduced from 0.8 to 0.25
         }));
       } else {
         // Restore energy while sleeping
@@ -73,7 +73,7 @@ function App() {
           energy: Math.min(100, prev.energy + 2)
         }));
       }
-    }, 2000);
+    }, 3000); // Increased from 2000ms to 3000ms (slower tick rate)
 
     return () => clearInterval(interval);
   }, [pet.isSleeping]);
