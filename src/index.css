@@ -14,38 +14,12 @@
 }
 
 @layer components {
-  #app-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/assets/Chiikawa-Background.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    z-index: -1;
-  }
-  
-  /* Fallback background in case image doesn't load */
-  #app-background::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #E8F5E8 0%, #C8E6C9 50%, #A5D6A7 100%);
-    z-index: -1;
-  }
-  
   #pet-container {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    transition: top 2s ease-in-out, left 2s ease-in-out;
+    transition: top 4s ease-in-out, left 4s ease-in-out;
   }
 }
 

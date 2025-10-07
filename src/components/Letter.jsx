@@ -231,10 +231,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
               minHeight: '80px'
             }}
           >
-            <div className="text-4xl mb-2">💌</div>
-            <div className="text-sm font-bold text-pet-purple">
-              Flying to Scrapbook!
-            </div>
+            <div className="text-4xl">💌</div>
           </div>
         </motion.div>
       )}

@@ -197,10 +197,22 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background Container */}
-      <div id="app-background"></div>
-      
+    <div 
+      id="app-container" 
+      className="min-h-screen relative overflow-hidden"
+      style={{
+        backgroundImage: "url('/assets/Chiikawa-Background.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed',
+        width: '100vw',
+        height: '100vh',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        zIndex: -1
+      }}
+    >
       <Room />
       
       {/* Status Bars */}
