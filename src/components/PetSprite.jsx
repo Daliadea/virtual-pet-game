@@ -49,6 +49,7 @@ const PetSprite = ({ pet, onPetClick }) => {
 
   // Drag and drop functionality
   const handleMouseDown = (e) => {
+    e.preventDefault();
     setIsDragging(true);
     setDragStart({
       x: e.clientX,
@@ -66,8 +67,8 @@ const PetSprite = ({ pet, onPetClick }) => {
     const percentX = (deltaX / window.innerWidth) * 100;
     const percentY = (deltaY / window.innerHeight) * 100;
     
-    const newX = Math.max(10, Math.min(90, petPosition.x + percentX));
-    const newY = Math.max(10, Math.min(90, petPosition.y + percentY));
+    const newX = Math.max(20, Math.min(80, petPosition.x + percentX));
+    const newY = Math.max(20, Math.min(80, petPosition.y + percentY));
     
     setPetPosition({ x: newX, y: newY });
     setDragStart({ x: e.clientX, y: e.clientY });
@@ -97,17 +98,17 @@ const PetSprite = ({ pet, onPetClick }) => {
   const movePetRandomly = () => {
     if (pet.isSleeping) return; // Don't move when sleeping
     
-    // Calculate small offset from current position (wandering effect)
-    const offsetX = (Math.random() - 0.5) * 20; // -10% to +10%
-    const offsetY = (Math.random() - 0.5) * 20; // -10% to +10%
+    // Calculate very small offset from current position (subtle wandering effect)
+    const offsetX = (Math.random() - 0.5) * 8; // -4% to +4%
+    const offsetY = (Math.random() - 0.5) * 8; // -4% to +4%
     
-    const newX = Math.max(20, Math.min(80, petPosition.x + offsetX)); // Keep within 20%-80%
-    const newY = Math.max(20, Math.min(80, petPosition.y + offsetY)); // Keep within 20%-80%
+    const newX = Math.max(30, Math.min(70, petPosition.x + offsetX)); // Keep within 30%-70%
+    const newY = Math.max(30, Math.min(70, petPosition.y + offsetY)); // Keep within 30%-70%
     
     setPetPosition({ x: newX, y: newY });
     
-    // Schedule next movement (longer intervals for calmer movement)
-    const nextMoveDelay = 8000 + Math.random() * 12000; // 8-20 seconds
+    // Schedule next movement (much longer intervals for very calm movement)
+    const nextMoveDelay = 15000 + Math.random() * 25000; // 15-40 seconds
     setTimeout(movePetRandomly, nextMoveDelay);
   };
 
