@@ -9,16 +9,22 @@ const ActionMenu = ({ onFeed, onPlay, onSleep, onPet, pet }) => {
       action: onFeed, 
       emoji: '🍎', 
       label: 'Feed', 
-      disabled: pet.isSleeping,
-      tooltip: 'Feed your pet (+25 hunger, +5 happiness)',
+      disabled: false, // Can feed even when sleeping - will wake them up!
+      tooltip: pet.isSleeping 
+        ? 'Feed your pet (will wake them up!) (+25 hunger, +5 happiness)'
+        : 'Feed your pet (+25 hunger, +5 happiness)',
       color: 'from-red-400 to-red-600'
     },
     { 
       action: onPlay, 
       emoji: '🎾', 
       label: 'Play', 
-      disabled: pet.energy < 20 || pet.isSleeping,
-      tooltip: 'Play with your pet (+30 happiness, -10 energy, -5 hunger)',
+      disabled: pet.energy < 20 && !pet.isSleeping, // Only disabled if low energy AND awake
+      tooltip: pet.isSleeping
+        ? 'Play with your pet (will wake them up!) (+30 happiness, -10 energy, -5 hunger)'
+        : pet.energy < 20
+        ? 'Your pet is too tired to play right now'
+        : 'Play with your pet (+30 happiness, -10 energy, -5 hunger)',
       color: 'from-green-400 to-green-600'
     },
     { 
@@ -33,8 +39,10 @@ const ActionMenu = ({ onFeed, onPlay, onSleep, onPet, pet }) => {
       action: onPet, 
       emoji: '🤗', 
       label: 'Pet', 
-      disabled: pet.isSleeping,
-      tooltip: 'Give your pet love (+15 happiness, +5 energy)',
+      disabled: false, // Can pet even when sleeping - will wake them up!
+      tooltip: pet.isSleeping
+        ? 'Give your pet love (will wake them up!) (+15 happiness, +5 energy)'
+        : 'Give your pet love (+15 happiness, +5 energy)',
       color: 'from-pink-400 to-pink-600'
     }
   ];

@@ -93,42 +93,84 @@ function App() {
     }
   }, [pet.hunger, pet.happiness, pet.energy]);
 
-  // Mood-based letter spawning with dynamic intervals (reliable loop)
+  // CRITICAL FIX: Mood-based letter spawning with dynamic intervals (reliable loop)
   useEffect(() => {
-    let cancelled = false;
+    // Don't spawn letters if all are collected
+    if (collectedLetters.length >= 100) return;
 
-    const planNext = () => {
+    let cancelled = false;
+    let timerRef = null;
+
+    const spawnLetterBasedOnMood = () => {
       if (cancelled) return;
-      if (collectedLetters.length >= 100) return;
 
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
-      // 15s (perfect) -> 30s (worst)
-      const spawnInterval = 30000 - (avgNeeds / 100) * 15000;
+      
+      // Calculate spawn chance and interval based on pet's mood
+      let spawnChance = 1.0; // 100% spawn chance by default
+      let baseInterval = 15000; // Base 15 seconds
+      
+      if (avgNeeds >= 80) {
+        // Happy pet: Fast spawns, 100% chance
+        baseInterval = 15000; // 15 seconds
+        spawnChance = 1.0;
+      } else if (avgNeeds >= 60) {
+        // Content pet: Normal spawns, 90% chance
+        baseInterval = 20000; // 20 seconds
+        spawnChance = 0.9;
+      } else if (avgNeeds >= 40) {
+        // Sad pet: Slower spawns, 70% chance
+        baseInterval = 30000; // 30 seconds
+        spawnChance = 0.7;
+      } else if (avgNeeds >= 20) {
+        // Critical pet: Very slow spawns, 40% chance
+        baseInterval = 45000; // 45 seconds
+        spawnChance = 0.4;
+      } else {
+        // Near death: Extremely rare spawns, 20% chance
+        baseInterval = 60000; // 60 seconds
+        spawnChance = 0.2;
+      }
 
-      const t = setTimeout(() => {
+      // Add randomness to interval (±30%)
+      const randomVariation = baseInterval * 0.3;
+      const actualInterval = baseInterval + (Math.random() * randomVariation * 2 - randomVariation);
+
+      // Schedule next spawn check
+      timerRef = setTimeout(() => {
         if (cancelled) return;
-        // Only spawn if mood is reasonable (>40) to avoid spam in poor care
-        if (avgNeeds > 40) {
+
+        // Check if letter should spawn based on chance
+        if (Math.random() < spawnChance) {
+          const allLetters = generateLoveLetters();
+          const nextLetterIndex = collectedLetters.length % allLetters.length;
+          
           const newLetter = {
             id: Date.now(),
             x: Math.random() * (window.innerWidth - 100),
             y: -50,
-            content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
+            content: allLetters[nextLetterIndex] || "I love you more than words can express! 💕"
           };
+          
           setActiveLetters(prev => [...prev, newLetter]);
         }
-        // Chain next spawn
-        planNext();
-      }, spawnInterval);
 
-      // Store timer on window so hot reloads/cancels don't leak
-      window.__letterSpawnTimer && clearTimeout(window.__letterSpawnTimer);
-      window.__letterSpawnTimer = t;
+        // Chain next spawn check
+        spawnLetterBasedOnMood();
+      }, actualInterval);
     };
 
-    planNext();
-    return () => { cancelled = true; window.__letterSpawnTimer && clearTimeout(window.__letterSpawnTimer); };
-  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length]);
+    // Start the spawn loop
+    spawnLetterBasedOnMood();
+
+    // Cleanup
+    return () => {
+      cancelled = true;
+      if (timerRef) {
+        clearTimeout(timerRef);
+      }
+    };
+  }, [collectedLetters.length, pet.hunger, pet.happiness, pet.energy]);
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {
@@ -136,7 +178,8 @@ function App() {
     setPet(prev => ({
       ...prev,
       hunger: Math.min(100, prev.hunger + 25),
-      happiness: Math.min(100, prev.happiness + 5)
+      happiness: Math.min(100, prev.happiness + 5),
+      isSleeping: false // CRITICAL: Wake up the pet when feeding
     }));
   }, []);
 
@@ -146,7 +189,8 @@ function App() {
       ...prev,
       happiness: Math.min(100, prev.happiness + 30),
       energy: Math.max(0, prev.energy - 10),
-      hunger: Math.max(0, prev.hunger - 5)
+      hunger: Math.max(0, prev.hunger - 5),
+      isSleeping: false // CRITICAL: Wake up the pet when playing
     }));
   }, []);
 
@@ -163,7 +207,8 @@ function App() {
     setPet(prev => ({
       ...prev,
       happiness: Math.min(100, prev.happiness + 15),
-      energy: Math.min(100, prev.energy + 5)
+      energy: Math.min(100, prev.energy + 5),
+      isSleeping: false // CRITICAL: Wake up the pet when petting
     }));
   }, []);
 
