@@ -96,7 +96,7 @@ const PetSprite = ({ pet, onPetClick }) => {
 
   // Autonomous movement function
   const movePetRandomly = () => {
-    if (pet.isSleeping) return; // Don't move when sleeping
+    if (pet.isSleeping || isDragging) return; // Don't move when sleeping or being dragged
     
     // Calculate moderate offset from current position (natural wandering effect)
     const offsetX = (Math.random() - 0.5) * 30; // -15% to +15%
@@ -107,16 +107,17 @@ const PetSprite = ({ pet, onPetClick }) => {
     
     setPetPosition({ x: newX, y: newY });
     
-    // Schedule next movement (longer intervals for calm movement)
-    const nextMoveDelay = 20000 + Math.random() * 30000; // 20-50 seconds
+    // Schedule next movement (faster, more natural intervals)
+    const nextMoveDelay = 10000 + Math.random() * 15000; // 10-25 seconds
     setTimeout(movePetRandomly, nextMoveDelay);
   };
 
   // Start autonomous movement on component mount
   useEffect(() => {
     const initialDelay = 3000 + Math.random() * 2000; // 3-5 seconds initial delay
-    setTimeout(movePetRandomly, initialDelay);
-  }, [pet.isSleeping]);
+    const timer = setTimeout(movePetRandomly, initialDelay);
+    return () => clearTimeout(timer);
+  }, [pet.isSleeping, isDragging]);
 
   return (
     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">

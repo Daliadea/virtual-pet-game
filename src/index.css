@@ -7,7 +7,13 @@
 @layer base {
   body {
     font-family: 'Fredoka', 'Comic Sans MS', cursive;
-    background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 50%, #DDA0DD 100%);
+    background-image: url('/assets/Chiikawa-Background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    /* Fallback gradient in case image doesn't load */
+    background-color: #FFE4E1;
     min-height: 100vh;
     margin: 0;
     overflow-x: hidden;
@@ -16,7 +22,7 @@
 
 @layer components {
   #pet-container {
-    transition: top 8s ease-in-out, left 8s ease-in-out;
+    transition: top 4s ease-in-out, left 4s ease-in-out;
   }
 }
 
