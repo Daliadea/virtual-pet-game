@@ -5,6 +5,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   const [isFalling, setIsFalling] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [showContent, setShowContent] = useState(false);
+  const [isMovingToScrapbook, setIsMovingToScrapbook] = useState(false);
 
   // Make the letter fall
   useEffect(() => {
@@ -37,7 +38,11 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   };
 
   const handleCollect = () => {
-    onCollect(letter.id, letter.content);
+    setIsMovingToScrapbook(true);
+    // Wait for animation to complete before actually collecting
+    setTimeout(() => {
+      onCollect(letter.id, letter.content);
+    }, 1000); // 1 second animation
   };
 
   return (
@@ -51,17 +56,19 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           rotate: -180
         }}
         animate={{ 
-          x: letter.x,
-          y: letter.y,
-          scale: 1,
+          x: isMovingToScrapbook ? window.innerWidth - 200 : letter.x, // Move to scrapbook button area
+          y: isMovingToScrapbook ? 50 : letter.y, // Move to top of screen where scrapbook button is
+          scale: isMovingToScrapbook ? 0.5 : 1,
           rotate: isFalling ? [0, -5, 5, 0] : 0,
         }}
         transition={{
           scale: { duration: 0.5, type: "spring" },
-          rotate: { duration: 2, repeat: isFalling ? Infinity : 0 }
+          rotate: { duration: 2, repeat: isFalling ? Infinity : 0 },
+          x: { duration: 1, ease: "easeInOut" },
+          y: { duration: 1, ease: "easeInOut" }
         }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: isMovingToScrapbook ? 0.5 : 1.1 }}
+        whileTap={{ scale: isMovingToScrapbook ? 0.5 : 0.9 }}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
