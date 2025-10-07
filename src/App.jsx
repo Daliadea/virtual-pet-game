@@ -93,38 +93,37 @@ function App() {
     }
   }, [pet.hunger, pet.happiness, pet.energy]);
 
-  // Main game loop for natural letter spawning
+  // Mood-based letter spawning with dynamic intervals
   useEffect(() => {
-    const gameTick = () => {
-      // Check if pet is well cared for
-      const isWellCaredFor = pet.happiness > 70 && pet.hunger > 70;
+    const spawnLetter = () => {
+      if (collectedLetters.length >= 100) return;
       
-      // Check if user has been active recently (within 5 minutes)
-      const timeSinceLastInteraction = Date.now() - lastUserInteractionTime;
-      const isUserActive = timeSinceLastInteraction < 5 * 60 * 1000; // 5 minutes
+      const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
       
-      // Only spawn if conditions are met and we haven't collected all letters
-      if (isWellCaredFor && isUserActive && collectedLetters.length < 100) {
-        // Random chance to spawn (20% chance on each tick)
-        if (Math.random() < 0.2) {
-          const newLetter = {
-            id: Date.now(),
-            x: Math.random() * (window.innerWidth - 100),
-            y: -50,
-            content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
-          };
-          
-          console.log('Natural letter spawned!', newLetter);
-          setActiveLetters(prev => [...prev, newLetter]);
-        }
-      }
+      // Calculate spawn interval based on pet mood: 15-30 seconds
+      // Perfect mood (100%) = 15 seconds, Bad mood (0%) = 30 seconds
+      const spawnInterval = 30000 - (avgNeeds / 100) * 15000; // 30s - (mood% * 15s) = 15-30s range
+      
+      console.log(`Letter will spawn in ${spawnInterval / 1000} seconds (Pet mood: ${avgNeeds.toFixed(0)}%)`);
+      
+      const timer = setTimeout(() => {
+        const newLetter = {
+          id: Date.now(),
+          x: Math.random() * (window.innerWidth - 100),
+          y: -50,
+          content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
+        };
+        
+        console.log('Natural letter spawned!', newLetter);
+        setActiveLetters(prev => [...prev, newLetter]);
+      }, spawnInterval);
+
+      return timer;
     };
 
-    // Run game tick every 8 seconds
-    const gameLoop = setInterval(gameTick, 8000);
-
-    return () => clearInterval(gameLoop);
-  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, lastUserInteractionTime]);
+    const timer = spawnLetter();
+    return () => clearTimeout(timer);
+  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, activeLetters.length]);
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {

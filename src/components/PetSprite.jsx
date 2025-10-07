@@ -66,11 +66,15 @@ const PetSprite = ({ pet, onPetClick }) => {
   };
 
   // Schedule next autonomous movement
-  const scheduleNextMovement = () => {
+  const scheduleNextMovement = (immediate = false) => {
     if (movementTimerRef.current) {
       clearTimeout(movementTimerRef.current);
     }
-    const nextMoveDelay = 8000 + Math.random() * 12000; // 8-20 seconds (good balance)
+    // If immediate (after drag), use short delay. Otherwise use normal delay
+    const nextMoveDelay = immediate 
+      ? 1000 + Math.random() * 1000 // 1-2 seconds for quick resume after drag
+      : 8000 + Math.random() * 12000; // 8-20 seconds (normal interval)
+    
     movementTimerRef.current = setTimeout(movePetRandomly, nextMoveDelay);
   };
 
@@ -110,8 +114,8 @@ const PetSprite = ({ pet, onPetClick }) => {
       }}
       onDragEnd={() => {
         setIsDragging(false);
-        // CRITICAL: Resume autonomous movement after dragging
-        scheduleNextMovement();
+        // CRITICAL: Resume autonomous movement after dragging with immediate (short) delay
+        scheduleNextMovement(true);
       }}
     >
       {/* Pet Shadow */}
