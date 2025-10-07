@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 const PetSprite = ({ pet, onPetClick }) => {
   const [petName, setPetName] = useState('My Love');
   const [isJiggling, setIsJiggling] = useState(false);
   const [petPosition, setPetPosition] = useState({ x: 0, y: 0 });
-  const [isMoving, setIsMoving] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const petContainerRef = useRef(null);
   const getChiikawaColor = () => {
     // Chiikawa is always white, but we can add a subtle tint based on mood
     switch (pet.mood) {
@@ -37,37 +39,72 @@ const PetSprite = ({ pet, onPetClick }) => {
     }
   };
 
-  const handlePetClick = () => {
-    setIsJiggling(true);
-    setTimeout(() => setIsJiggling(false), 600);
-    if (onPetClick) onPetClick();
+  const handlePetClick = (e) => {
+    if (!isDragging) {
+      setIsJiggling(true);
+      setTimeout(() => setIsJiggling(false), 600);
+      if (onPetClick) onPetClick();
+    }
   };
 
-  // Random movement effect
-  useEffect(() => {
-    const movePet = () => {
-      if (pet.isSleeping) return; // Don't move when sleeping
-      
-      setIsMoving(true);
-      const newX = (Math.random() - 0.5) * 200; // Move up to 100px in any direction
-      const newY = (Math.random() - 0.5) * 200;
-      
-      setPetPosition({ x: newX, y: newY });
-      
-      setTimeout(() => {
-        setIsMoving(false);
-        setPetPosition({ x: 0, y: 0 }); // Return to center
-      }, 2000); // Move for 2 seconds
-    };
+  // Drag and drop functionality
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - petPosition.x,
+      y: e.clientY - petPosition.y
+    });
+  };
 
-    // Move every 8-15 seconds
-    const interval = setInterval(movePet, 8000 + Math.random() * 7000);
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
     
-    return () => clearInterval(interval);
-  }, [pet.isSleeping]);
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    // Keep pet within screen bounds (avoiding UI elements)
+    const maxX = window.innerWidth - 200; // Leave space for UI
+    const maxY = window.innerHeight - 200; // Leave space for UI
+    const minX = 100; // Leave space for UI
+    const minY = 100; // Leave space for UI
+    
+    const constrainedX = Math.max(minX, Math.min(maxX, newX));
+    const constrainedY = Math.max(minY, Math.min(maxY, newY));
+    
+    setPetPosition({ x: constrainedX, y: constrainedY });
+  };
+
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      // Position is already set in handleMouseMove, so it will stick
+    }
+  };
+
+  // Add event listeners for drag and drop
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, dragStart, petPosition]);
 
   return (
-    <div className="relative">
+    <div 
+      ref={petContainerRef}
+      className="absolute cursor-move"
+      style={{
+        left: petPosition.x,
+        top: petPosition.y,
+        transform: 'translate(-50%, -50%)'
+      }}
+      onMouseDown={handleMouseDown}
+    >
       {/* Pet Shadow */}
       <motion.div
         animate={{
@@ -81,14 +118,10 @@ const PetSprite = ({ pet, onPetClick }) => {
       {/* Chiikawa Body */}
       <motion.div
         animate={{
-          x: petPosition.x,
-          y: petPosition.y,
           rotate: pet.isSleeping ? 0 : [0, -1, 1, 0],
           scale: isJiggling ? [1, 1.2, 1] : 1,
         }}
         transition={{
-          x: { duration: 2, ease: "easeInOut" },
-          y: { duration: 2, ease: "easeInOut" },
           rotate: { duration: 2, repeat: pet.isSleeping ? 0 : Infinity, ease: "easeInOut" },
           scale: { duration: 0.6, ease: "easeOut" }
         }}

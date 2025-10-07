@@ -38,11 +38,21 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   };
 
   const handleCollect = () => {
+    setShowContent(false); // Close the modal first
     setIsMovingToScrapbook(true);
+    
     // Wait for animation to complete before actually collecting
-    setTimeout(() => {
-      onCollect(letter.id, letter.content);
-    }, 1000); // 1 second animation
+    const animationElement = document.querySelector(`[data-letter-id="${letter.id}"]`);
+    if (animationElement) {
+      animationElement.addEventListener('transitionend', () => {
+        onCollect(letter.id, letter.content);
+      }, { once: true });
+    } else {
+      // Fallback if event listener fails
+      setTimeout(() => {
+        onCollect(letter.id, letter.content);
+      }, 2500); // 2.5 second animation
+    }
   };
 
   return (
@@ -64,9 +74,10 @@ const Letter = ({ letter, onCollect, onRemove }) => {
         transition={{
           scale: { duration: 0.5, type: "spring" },
           rotate: { duration: 2, repeat: isFalling ? Infinity : 0 },
-          x: { duration: 1, ease: "easeInOut" },
-          y: { duration: 1, ease: "easeInOut" }
+          x: { duration: 2.5, ease: "easeInOut" },
+          y: { duration: 2.5, ease: "easeInOut" }
         }}
+        data-letter-id={letter.id}
         whileHover={{ scale: isMovingToScrapbook ? 0.5 : 1.1 }}
         whileTap={{ scale: isMovingToScrapbook ? 0.5 : 0.9 }}
         onClick={handleClick}

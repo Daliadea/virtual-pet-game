@@ -204,10 +204,8 @@ function App() {
       <StatusBars pet={pet} />
       
       {/* Pet Sprite with Accessories */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <PetSprite pet={pet} onPetClick={handlePetClick} />
-        <PetAccessoryRenderer accessories={petAccessories} />
-      </div>
+      <PetSprite pet={pet} onPetClick={handlePetClick} />
+      <PetAccessoryRenderer accessories={petAccessories} />
       
       {/* Action Menu */}
       <ActionMenu 
