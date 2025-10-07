@@ -100,30 +100,18 @@ function App() {
   useEffect(() => {
     const spawnLetter = () => {
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
-      
-      // Much faster spawning: 3-8 seconds
       const spawnRate = avgNeeds >= 70 ? 3000 : avgNeeds >= 40 ? 5000 : 8000; // 3-8 seconds
       
       const timer = setTimeout(() => {
         if (collectedLetters.length < 100) {
-          setActiveLetters(prev => {
-            // Limit to maximum 3 letters on screen
-            if (prev.length >= 3) {
-              console.log('Maximum 3 letters on screen, skipping spawn');
-              return prev;
-            }
-            
-            const newLetter = {
-              id: Date.now(),
-              x: Math.random() * (window.innerWidth - 100),
-              y: -50,
-              content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
-            };
-            
-            console.log('Spawning letter:', newLetter); // Debug log
-            console.log('Active letters before:', prev.length); // Debug log
-            return [...prev, newLetter];
-          });
+          const newLetter = {
+            id: Date.now(),
+            x: Math.random() * (window.innerWidth - 100),
+            y: -50,
+            content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
+          };
+          
+          setActiveLetters(prev => [...prev, newLetter]);
         }
       }, spawnRate);
 
@@ -132,7 +120,7 @@ function App() {
 
     const timer = spawnLetter();
     return () => clearTimeout(timer);
-  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, activeLetters.length]);
+  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length]);
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {
@@ -213,11 +201,11 @@ function App() {
       {/* Status Bars */}
       <StatusBars pet={pet} />
       
-      {/* Pet Sprite */}
-      <PetSprite pet={pet} onPetClick={handlePetClick} />
-      
-      {/* Pet Accessories */}
-      <PetAccessoryRenderer accessories={petAccessories} />
+      {/* Pet Sprite with Accessories */}
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <PetSprite pet={pet} onPetClick={handlePetClick} />
+        <PetAccessoryRenderer accessories={petAccessories} />
+      </div>
       
       {/* Action Menu */}
       <ActionMenu 
