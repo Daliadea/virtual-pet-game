@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PetSprite from './components/PetSprite';
 import StatusBars from './components/StatusBars';
 import ActionMenu from './components/ActionMenu';
-import PetAccessories from './components/PetAccessories';
-import PetAccessoryRenderer from './components/PetAccessoryRenderer';
 import Letter from './components/Letter';
 import ScrapbookPage from './components/ScrapbookPage';
 import Room from './components/Room';
@@ -27,7 +25,6 @@ function App() {
   const [allLettersUnlocked, setAllLettersUnlocked] = useState(false);
   const [showFinalSurprise, setShowFinalSurprise] = useState(false);
   const [activeLetters, setActiveLetters] = useState([]);
-  const [petAccessories, setPetAccessories] = useState([]);
   const [lastUserInteractionTime, setLastUserInteractionTime] = useState(Date.now());
   const [scrapbookGlow, setScrapbookGlow] = useState(false);
 
@@ -180,15 +177,6 @@ function App() {
     setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
   }, []);
 
-  // Handle accessory toggle
-  const handleAccessoryToggle = useCallback((accessoryId) => {
-    setPetAccessories(prev => 
-      prev.includes(accessoryId) 
-        ? prev.filter(id => id !== accessoryId)
-        : [...prev, accessoryId]
-    );
-  }, []);
-
   // Handle letter removal from scrapbook
   const handleLetterRemove = useCallback((letterId) => {
     if (window.confirm('Are you sure you want to remove this letter? You can get it back by playing the game!')) {
@@ -203,9 +191,8 @@ function App() {
       {/* Status Bars */}
       <StatusBars pet={pet} />
       
-      {/* Pet Sprite with Accessories */}
+      {/* Pet Sprite */}
       <PetSprite pet={pet} onPetClick={handlePetClick} />
-      <PetAccessoryRenderer accessories={petAccessories} />
       
       {/* Action Menu */}
       <ActionMenu 
@@ -214,13 +201,6 @@ function App() {
         onSleep={handleSleep}
         onPet={handlePet}
         pet={pet}
-      />
-      
-      {/* Pet Accessories Menu */}
-      <PetAccessories 
-        pet={pet}
-        accessories={petAccessories}
-        onAccessoryToggle={handleAccessoryToggle}
       />
       
       {/* Scrapbook Button */}

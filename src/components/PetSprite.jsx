@@ -8,6 +8,7 @@ const PetSprite = ({ pet, onPetClick }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const petContainerRef = useRef(null);
+  const movementTimerRef = useRef(null);
   const getChiikawaColor = () => {
     // Chiikawa is always white, but we can add a subtle tint based on mood
     switch (pet.mood) {
@@ -50,6 +51,11 @@ const PetSprite = ({ pet, onPetClick }) => {
   // Drag and drop functionality
   const handleMouseDown = (e) => {
     e.preventDefault();
+    // Stop autonomous movement immediately
+    if (movementTimerRef.current) {
+      clearTimeout(movementTimerRef.current);
+      movementTimerRef.current = null;
+    }
     setIsDragging(true);
     setDragStart({
       x: e.clientX,
@@ -78,7 +84,18 @@ const PetSprite = ({ pet, onPetClick }) => {
     if (isDragging) {
       setIsDragging(false);
       // Position is already set in handleMouseMove, so it will stick
+      // Resume autonomous movement after dragging
+      scheduleNextMovement();
     }
+  };
+
+  // Schedule next autonomous movement
+  const scheduleNextMovement = () => {
+    if (movementTimerRef.current) {
+      clearTimeout(movementTimerRef.current);
+    }
+    const nextMoveDelay = 10000 + Math.random() * 15000; // 10-25 seconds
+    movementTimerRef.current = setTimeout(movePetRandomly, nextMoveDelay);
   };
 
   // Add event listeners for drag and drop
@@ -107,17 +124,21 @@ const PetSprite = ({ pet, onPetClick }) => {
     
     setPetPosition({ x: newX, y: newY });
     
-    // Schedule next movement (faster, more natural intervals)
-    const nextMoveDelay = 10000 + Math.random() * 15000; // 10-25 seconds
-    setTimeout(movePetRandomly, nextMoveDelay);
+    // Schedule next movement
+    scheduleNextMovement();
   };
 
   // Start autonomous movement on component mount
   useEffect(() => {
     const initialDelay = 3000 + Math.random() * 2000; // 3-5 seconds initial delay
-    const timer = setTimeout(movePetRandomly, initialDelay);
-    return () => clearTimeout(timer);
-  }, [pet.isSleeping, isDragging]);
+    movementTimerRef.current = setTimeout(movePetRandomly, initialDelay);
+    
+    return () => {
+      if (movementTimerRef.current) {
+        clearTimeout(movementTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
