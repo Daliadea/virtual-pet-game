@@ -118,18 +118,18 @@ const PetSprite = ({ pet, onPetClick }) => {
   }, [pet.isSleeping]);
 
   return (
-    <div 
-      id="pet-container"
-      ref={petContainerRef}
-      className="cursor-move fixed"
-      style={{
-        left: `${petPosition.x}%`,
-        top: `${petPosition.y}%`,
-        transform: 'translate(-50%, -50%)',
-        zIndex: 10
-      }}
-      onMouseDown={handleMouseDown}
-    >
+    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+      <div 
+        id="pet-container"
+        ref={petContainerRef}
+        className="cursor-move relative"
+        style={{
+          left: `${petPosition.x}%`,
+          top: `${petPosition.y}%`,
+          transform: 'translate(-50%, -50%)'
+        }}
+        onMouseDown={handleMouseDown}
+      >
       {/* Pet Shadow */}
       <motion.div
         animate={{
@@ -306,8 +306,9 @@ const PetSprite = ({ pet, onPetClick }) => {
           onClick={handleNameClick}
           title="Click to change name"
         >
-          <span className="text-sm font-bold text-pet-purple">{petName}</span>
-        </motion.div>
+        <span className="text-sm font-bold text-pet-purple">{petName}</span>
+      </motion.div>
+      </div>
     </div>
   );
 };
