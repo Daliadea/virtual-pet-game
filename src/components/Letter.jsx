@@ -7,20 +7,25 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   const [showContent, setShowContent] = useState(false);
   const [isMovingToScrapbook, setIsMovingToScrapbook] = useState(false);
   const [showAnimatedLetter, setShowAnimatedLetter] = useState(false);
+  const [currentY, setCurrentY] = useState(letter.y);
 
-  // Make the letter fall
+  // Make the letter fall - FIXED
   useEffect(() => {
+    if (!isFalling) return;
+
     const fallInterval = setInterval(() => {
-      if (isFalling) {
-        const newY = letter.y + 2;
+      setCurrentY(prevY => {
+        const newY = prevY + 2;
         if (newY > window.innerHeight + 100) {
           onRemove(letter.id);
+          return prevY;
         }
-      }
+        return newY;
+      });
     }, 50);
 
     return () => clearInterval(fallInterval);
-  }, [letter.y, isFalling, letter.id, onRemove]);
+  }, [isFalling, letter.id, onRemove]);
 
   // Auto-fall after 10 seconds
   useEffect(() => {
@@ -60,8 +65,8 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           rotate: -180
         }}
         animate={{ 
-          x: isMovingToScrapbook ? window.innerWidth - 150 : letter.x, // Move to scrapbook button area
-          y: isMovingToScrapbook ? 50 : letter.y, // Move to top of screen where scrapbook button is
+          x: isMovingToScrapbook ? window.innerWidth - 150 : letter.x,
+          y: isMovingToScrapbook ? 50 : currentY,
           scale: isMovingToScrapbook ? 0.3 : 1,
           rotate: isMovingToScrapbook ? 360 : (isFalling ? [0, -5, 5, 0] : 0),
         }}
@@ -69,7 +74,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           scale: { duration: 0.5, type: "spring" },
           rotate: { duration: 2, repeat: isFalling ? Infinity : 0 },
           x: { duration: 2.5, ease: "easeInOut" },
-          y: { duration: 2.5, ease: "easeInOut" }
+          y: { duration: 0, ease: "linear" }
         }}
         data-letter-id={letter.id}
         whileHover={{ scale: isMovingToScrapbook ? 0.5 : 1.1 }}
@@ -78,7 +83,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={`fixed z-50 cursor-pointer ${isFalling ? 'animate-bounce-gentle' : ''}`}
-        style={{ left: letter.x, top: letter.y }}
+        style={{ left: letter.x, top: currentY }}
       >
         <motion.div
           animate={{

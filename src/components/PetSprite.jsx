@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 const PetSprite = ({ pet, onPetClick }) => {
@@ -48,34 +48,30 @@ const PetSprite = ({ pet, onPetClick }) => {
     }
   };
 
-  // Autonomous movement function
-  const movePetRandomly = () => {
+  // Autonomous movement and scheduling - FIXED with proper dependencies
+  const movePetRandomly = useCallback(() => {
+    console.log('movePetRandomly called - sleeping:', pet.isSleeping, 'dragging:', isDragging);
+    
     // CRITICAL: Don't move when sleeping or being dragged
     if (pet.isSleeping || isDragging) {
-      return; // Simply exit, don't reschedule here
+      return;
     }
     
     // Calculate safe boundaries to avoid UI elements
-    // Top: avoid status bar (20%)
-    // Left/Right: avoid buttons (15% margin on each side)
-    // Bottom: avoid action menu (20%)
-    const minX = 15; // Left margin
-    const maxX = 85; // Right margin
-    const minY = 20; // Top margin (status bars)
-    const maxY = 75; // Bottom margin (action menu)
+    const minX = 15;
+    const maxX = 85;
+    const minY = 20;
+    const maxY = 75;
     
     // Move pet to a new random position within safe boundaries
     const newX = minX + Math.random() * (maxX - minX);
     const newY = minY + Math.random() * (maxY - minY);
     
+    console.log('Moving pet to:', newX, newY);
     setPetPosition({ x: newX, y: newY });
-    
-    // Schedule next movement
-    scheduleNextMovement();
-  };
+  }, [pet.isSleeping, isDragging]);
 
-  // Schedule next autonomous movement
-  const scheduleNextMovement = (immediate = false) => {
+  const scheduleNextMovement = useCallback((immediate = false) => {
     // Clear any existing timer
     if (movementTimerRef.current) {
       clearTimeout(movementTimerRef.current);
@@ -84,21 +80,27 @@ const PetSprite = ({ pet, onPetClick }) => {
     
     // Don't schedule if sleeping or dragging
     if (pet.isSleeping || isDragging) {
+      console.log('Not scheduling - sleeping:', pet.isSleeping, 'dragging:', isDragging);
       return;
     }
     
     // If immediate (after drag), use short delay. Otherwise use normal delay
     const nextMoveDelay = immediate 
-      ? 1000 + Math.random() * 1000 // 1-2 seconds for quick resume after drag
-      : 8000 + Math.random() * 12000; // 8-20 seconds (normal interval)
+      ? 1000 + Math.random() * 1000
+      : 8000 + Math.random() * 12000;
     
-    movementTimerRef.current = setTimeout(movePetRandomly, nextMoveDelay);
-  };
+    console.log('Scheduling next movement in', nextMoveDelay, 'ms');
+    movementTimerRef.current = setTimeout(() => {
+      movePetRandomly();
+      // After moving, schedule the next one
+      scheduleNextMovement();
+    }, nextMoveDelay);
+  }, [pet.isSleeping, isDragging, movePetRandomly]);
 
   // Start autonomous movement on component mount
   useEffect(() => {
-    const initialDelay = 5000 + Math.random() * 5000; // 5-10 seconds initial delay
-    movementTimerRef.current = setTimeout(movePetRandomly, initialDelay);
+    console.log('Initial mount - starting movement loop');
+    scheduleNextMovement(false);
     
     return () => {
       if (movementTimerRef.current) {
@@ -106,32 +108,35 @@ const PetSprite = ({ pet, onPetClick }) => {
         movementTimerRef.current = null;
       }
     };
-  }, []);
+  }, [scheduleNextMovement]);
 
   // CRITICAL FIX: Stop/restart movement when sleeping state changes
   useEffect(() => {
     if (pet.isSleeping) {
       // Pet is going to sleep - STOP ALL MOVEMENT
+      console.log('Pet going to sleep - stopping movement');
       if (movementTimerRef.current) {
         clearTimeout(movementTimerRef.current);
         movementTimerRef.current = null;
       }
     } else {
       // Pet is waking up - RESTART MOVEMENT
+      console.log('Pet waking up - restarting movement');
       // Only restart if not currently dragging and no timer is active
       if (!isDragging && !movementTimerRef.current) {
-        scheduleNextMovement(true); // Use immediate scheduling to restart quickly
+        scheduleNextMovement(true);
       }
     }
-  }, [pet.isSleeping]);
+  }, [pet.isSleeping, isDragging, scheduleNextMovement]);
 
   // CRITICAL FIX: Ensure movement restarts after dragging ends
   useEffect(() => {
     // When dragging ends, make sure movement restarts (if not sleeping)
     if (!isDragging && !pet.isSleeping && !movementTimerRef.current) {
+      console.log('Drag ended - restarting movement');
       scheduleNextMovement(true);
     }
-  }, [isDragging]);
+  }, [isDragging, pet.isSleeping, scheduleNextMovement]);
 
   return (
     <motion.div 
