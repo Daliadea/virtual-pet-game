@@ -87,44 +87,43 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           className={`fixed z-50 cursor-pointer ${isFalling ? 'animate-bounce-gentle' : ''}`}
           style={{ left: letter.x, top: currentY }}
         >
-        <motion.div
-          animate={{
-            scale: isHovered ? 1.1 : 1,
-            rotate: isHovered ? [0, -10, 10, 0] : 0
-          }}
-          transition={{ duration: 0.3 }}
-          className="letter-envelope p-4 text-center"
-          style={{
-            backgroundColor: 'white',
-            borderRadius: '1rem',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-            border: '2px solid #FFB6C1',
-            minWidth: '80px',
-            minHeight: '80px'
-          }}
-        >
-          <div className="text-4xl mb-2">💌</div>
-          <div className="text-sm font-bold text-pet-purple">
-            {isFalling ? 'Click me!' : 'Open me!'}
-          </div>
-        </motion.div>
-        
-        {/* Sparkle effect */}
-        {isHovered && (
           <motion.div
             animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.5, 1, 0.5]
+              scale: isHovered ? 1.1 : 1,
+              rotate: isHovered ? [0, -10, 10, 0] : 0
             }}
-            transition={{ duration: 1, repeat: Infinity }}
-            className="absolute inset-0 pointer-events-none"
+            transition={{ duration: 0.3 }}
+            className="letter-envelope p-4 text-center"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+              border: '2px solid #FFB6C1',
+              minWidth: '80px',
+              minHeight: '80px'
+            }}
           >
-            <div className="absolute top-2 right-2 text-yellow-400">✨</div>
-            <div className="absolute bottom-2 left-2 text-pink-400">💕</div>
+            <div className="text-4xl mb-2">💌</div>
+            <div className="text-sm font-bold text-pet-purple">
+              {isFalling ? 'Click me!' : 'Open me!'}
+            </div>
           </motion.div>
-        )}
+          
+          {/* Sparkle effect */}
+          {isHovered && (
+            <motion.div
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.5, 1, 0.5]
+              }}
+              transition={{ duration: 1, repeat: Infinity }}
+              className="absolute inset-0 pointer-events-none"
+            >
+              <div className="absolute top-2 right-2 text-yellow-400">✨</div>
+              <div className="absolute bottom-2 left-2 text-pink-400">💕</div>
+            </motion.div>
+          )}
         </motion.div>
-      </motion.div>
       )}
 
       {/* Letter Content Modal */}
