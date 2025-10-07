@@ -34,16 +34,7 @@ const Controls = ({ onFeed, onPlay, onSleep, onPet, pet, collectedCount, onShowS
   ];
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md px-4" style={{
-      position: 'fixed',
-      bottom: '1rem',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      zIndex: 40,
-      width: '100%',
-      maxWidth: '28rem',
-      padding: '0 1rem'
-    }}>
+    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40">
       {/* Scrapbook Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}

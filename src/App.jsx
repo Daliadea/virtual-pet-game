@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Pet from './components/Pet';
-import Controls from './components/Controls';
+import PetSprite from './components/PetSprite';
+import StatusBars from './components/StatusBars';
+import ActionMenu from './components/ActionMenu';
 import Letter from './components/Letter';
-import Scrapbook from './components/Scrapbook';
+import ScrapbookPage from './components/ScrapbookPage';
 import Room from './components/Room';
 import Confetti from './components/Confetti';
 import { generateLoveLetters } from './utils/loveLetters';
@@ -161,39 +162,33 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col" style={{
-      minHeight: '100vh',
-      position: 'relative',
-      overflow: 'hidden',
-      display: 'flex',
-      flexDirection: 'column'
-    }}>
+    <div className="min-h-screen relative overflow-hidden">
       <Room />
       
-      {/* Main Game Container */}
-      <div className="flex-1 flex flex-col justify-center items-center relative z-10" style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
-        zIndex: 10
-      }}>
-        {/* Pet */}
-        <Pet pet={pet} />
-      </div>
+      {/* Status Bars */}
+      <StatusBars pet={pet} />
       
-      {/* Controls */}
-      <Controls 
+      {/* Pet Sprite */}
+      <PetSprite pet={pet} />
+      
+      {/* Action Menu */}
+      <ActionMenu 
         onFeed={handleFeed}
         onPlay={handlePlay}
         onSleep={handleSleep}
         onPet={handlePet}
         pet={pet}
-        collectedCount={collectedLetters.length}
-        onShowScrapbook={() => setShowScrapbook(true)}
       />
+      
+      {/* Scrapbook Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setShowScrapbook(true)}
+        className="fixed top-4 right-4 bg-gradient-to-r from-pet-purple to-pet-pink text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40"
+      >
+        📖 Scrapbook ({collectedLetters.length}/100)
+      </motion.button>
       
       {/* Active Letters */}
       <AnimatePresence>
@@ -207,13 +202,15 @@ function App() {
         ))}
       </AnimatePresence>
       
-      {/* Scrapbook */}
-      {showScrapbook && (
-        <Scrapbook 
-          letters={collectedLetters}
-          onClose={() => setShowScrapbook(false)}
-        />
-      )}
+      {/* Scrapbook Page */}
+      <AnimatePresence>
+        {showScrapbook && (
+          <ScrapbookPage 
+            letters={collectedLetters}
+            onClose={() => setShowScrapbook(false)}
+          />
+        )}
+      </AnimatePresence>
       
       {/* Final Surprise */}
       <AnimatePresence>
