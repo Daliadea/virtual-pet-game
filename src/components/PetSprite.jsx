@@ -12,6 +12,15 @@ const PetSprite = ({ pet, onPetClick }) => {
   const isSleepingRef = useRef(pet.isSleeping);
   const isDraggingRef = useRef(false);
 
+  // CRITICAL FIX: Load pet name from localStorage on mount
+  useEffect(() => {
+    const savedPetName = localStorage.getItem('petName');
+    if (savedPetName) {
+      setPetName(savedPetName);
+      console.log('Loaded pet name from localStorage:', savedPetName);
+    }
+  }, []);
+
   // Keep refs in sync
   useEffect(() => {
     isSleepingRef.current = pet.isSleeping;
@@ -47,7 +56,11 @@ const PetSprite = ({ pet, onPetClick }) => {
   const handleNameClick = () => {
     const newName = prompt('Enter a new name for your pet:', petName);
     if (newName && newName.trim()) {
-      setPetName(newName.trim());
+      const trimmedName = newName.trim();
+      setPetName(trimmedName);
+      // CRITICAL FIX: Save pet name to localStorage
+      localStorage.setItem('petName', trimmedName);
+      console.log('Saved pet name to localStorage:', trimmedName);
     }
   };
 

@@ -39,6 +39,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   const handleClick = () => {
     if (isFalling) {
       setIsFalling(false);
+      // CRITICAL FIX: Hide the "Click me" letter immediately
       setShowContent(true);
     }
   };
@@ -56,35 +57,36 @@ const Letter = ({ letter, onCollect, onRemove }) => {
 
   return (
     <>
-      {/* Falling Letter */}
-      <motion.div
-        initial={{ 
-          x: letter.x, 
-          y: letter.y,
-          scale: 0,
-          rotate: -180
-        }}
-        animate={{ 
-          x: isMovingToScrapbook ? window.innerWidth - 150 : letter.x,
-          y: isMovingToScrapbook ? 50 : currentY,
-          scale: isMovingToScrapbook ? 0.3 : 1,
-          rotate: isMovingToScrapbook ? 360 : (isFalling ? [0, -5, 5, 0] : 0),
-        }}
-        transition={{
-          scale: { duration: 0.5, type: "spring" },
-          rotate: { duration: 2, repeat: isFalling ? Infinity : 0 },
-          x: { duration: 2.5, ease: "easeInOut" },
-          y: { duration: 0, ease: "linear" }
-        }}
-        data-letter-id={letter.id}
-        whileHover={{ scale: isMovingToScrapbook ? 0.5 : 1.1 }}
-        whileTap={{ scale: isMovingToScrapbook ? 0.5 : 0.9 }}
-        onClick={handleClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        className={`fixed z-50 cursor-pointer ${isFalling ? 'animate-bounce-gentle' : ''}`}
-        style={{ left: letter.x, top: currentY }}
-      >
+      {/* Falling Letter - CRITICAL FIX: Hide immediately when clicked */}
+      {!showContent && (
+        <motion.div
+          initial={{ 
+            x: letter.x, 
+            y: letter.y,
+            scale: 0,
+            rotate: -180
+          }}
+          animate={{ 
+            x: isMovingToScrapbook ? window.innerWidth - 150 : letter.x,
+            y: isMovingToScrapbook ? 50 : currentY,
+            scale: isMovingToScrapbook ? 0.3 : 1,
+            rotate: isMovingToScrapbook ? 360 : (isFalling ? [0, -5, 5, 0] : 0),
+          }}
+          transition={{
+            scale: { duration: 0.5, type: "spring" },
+            rotate: { duration: 2, repeat: isFalling ? Infinity : 0 },
+            x: { duration: 2.5, ease: "easeInOut" },
+            y: { duration: 0, ease: "linear" }
+          }}
+          data-letter-id={letter.id}
+          whileHover={{ scale: isMovingToScrapbook ? 0.5 : 1.1 }}
+          whileTap={{ scale: isMovingToScrapbook ? 0.5 : 0.9 }}
+          onClick={handleClick}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={`fixed z-50 cursor-pointer ${isFalling ? 'animate-bounce-gentle' : ''}`}
+          style={{ left: letter.x, top: currentY }}
+        >
         <motion.div
           animate={{
             scale: isHovered ? 1.1 : 1,
@@ -121,7 +123,9 @@ const Letter = ({ letter, onCollect, onRemove }) => {
             <div className="absolute bottom-2 left-2 text-pink-400">💕</div>
           </motion.div>
         )}
+        </motion.div>
       </motion.div>
+      )}
 
       {/* Letter Content Modal */}
       {showContent && (

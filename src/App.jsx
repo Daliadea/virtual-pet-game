@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PetSprite from './components/PetSprite';
 import StatusBars from './components/StatusBars';
@@ -27,6 +27,8 @@ function App() {
   const [activeLetters, setActiveLetters] = useState([]);
   const [lastUserInteractionTime, setLastUserInteractionTime] = useState(Date.now());
   const [scrapbookGlow, setScrapbookGlow] = useState(false);
+  const [isLetterOnScreen, setIsLetterOnScreen] = useState(false);
+  const lastLetterIndexRef = useRef(-1);
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -141,13 +143,33 @@ function App() {
       timerRef = setTimeout(() => {
         if (cancelled) return;
 
+        // CRITICAL FIX: Check if a letter is already on screen
+        if (isLetterOnScreen) {
+          console.log('⏸️ Letter already on screen - skipping spawn, will check again soon');
+          // Retry in 5 seconds instead of the full interval
+          timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
+          return;
+        }
+
         const roll = Math.random();
         console.log('Letter spawn check - rolled:', roll.toFixed(2), 'need <', spawnChance.toFixed(2));
         
         // Check if letter should spawn based on chance
         if (roll < spawnChance) {
           const allLetters = generateLoveLetters();
-          const nextLetterIndex = collectedLetters.length % allLetters.length;
+          
+          // CRITICAL FIX: Prevent duplicate consecutive messages
+          let nextLetterIndex;
+          const maxAttempts = 10; // Prevent infinite loop
+          let attempts = 0;
+          
+          do {
+            nextLetterIndex = Math.floor(Math.random() * allLetters.length);
+            attempts++;
+          } while (nextLetterIndex === lastLetterIndexRef.current && attempts < maxAttempts && allLetters.length > 1);
+          
+          // Remember this index for next time
+          lastLetterIndexRef.current = nextLetterIndex;
           
           const newLetter = {
             id: Date.now(),
@@ -156,8 +178,9 @@ function App() {
             content: allLetters[nextLetterIndex] || "I love you more than words can express! 💕"
           };
           
-          console.log('✉️ SPAWNING LETTER at x:', newLetter.x.toFixed(0), 'y:', newLetter.y);
+          console.log('✉️ SPAWNING LETTER #' + nextLetterIndex + ' at x:', newLetter.x.toFixed(0), 'y:', newLetter.y);
           setActiveLetters(prev => [...prev, newLetter]);
+          setIsLetterOnScreen(true); // CRITICAL: Mark that a letter is now on screen
         } else {
           console.log('❌ Letter spawn failed chance check');
         }
@@ -230,6 +253,9 @@ function App() {
     setCollectedLetters(prev => [...prev, { id: letterId, content, timestamp: Date.now() }]);
     setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
     
+    // CRITICAL FIX: Mark that letter is no longer on screen (allow new spawns)
+    setIsLetterOnScreen(false);
+    
     // Trigger scrapbook glow animation
     setScrapbookGlow(true);
     setTimeout(() => setScrapbookGlow(false), 1000);
@@ -238,6 +264,8 @@ function App() {
   // Handle letter removal (when it falls off screen)
   const handleActiveLetterRemove = useCallback((letterId) => {
     setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
+    // CRITICAL FIX: Mark that letter is no longer on screen (allow new spawns)
+    setIsLetterOnScreen(false);
   }, []);
 
   // Handle letter removal from scrapbook
@@ -283,17 +311,31 @@ function App() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
+          // Respect the isLetterOnScreen check
+          if (isLetterOnScreen) {
+            console.log('Cannot spawn - letter already on screen');
+            return;
+          }
+          
           // Use a real love letter from the list
           const allLetters = generateLoveLetters();
-          const randomLetter = allLetters[Math.floor(Math.random() * allLetters.length)];
+          
+          // Prevent duplicate consecutive messages
+          let randomIndex;
+          do {
+            randomIndex = Math.floor(Math.random() * allLetters.length);
+          } while (randomIndex === lastLetterIndexRef.current && allLetters.length > 1);
+          
+          lastLetterIndexRef.current = randomIndex;
           
           const newLetter = {
             id: Date.now(),
             x: Math.random() * (window.innerWidth - 100),
             y: -50,
-            content: randomLetter || "I love you more than words can express! 💕"
+            content: allLetters[randomIndex] || "I love you more than words can express! 💕"
           };
           setActiveLetters(prev => [...prev, newLetter]);
+          setIsLetterOnScreen(true);
         }}
         className="fixed top-4 left-4 bg-gradient-to-r from-green-400 to-green-600 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40"
       >
