@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PetSprite from './components/PetSprite';
 import StatusBars from './components/StatusBars';
 import ActionMenu from './components/ActionMenu';
+import PetAccessories from './components/PetAccessories';
+import PetAccessoryRenderer from './components/PetAccessoryRenderer';
 import Letter from './components/Letter';
 import ScrapbookPage from './components/ScrapbookPage';
 import Room from './components/Room';
@@ -25,6 +27,9 @@ function App() {
   const [allLettersUnlocked, setAllLettersUnlocked] = useState(false);
   const [showFinalSurprise, setShowFinalSurprise] = useState(false);
   const [activeLetters, setActiveLetters] = useState([]);
+  const [petAccessories, setPetAccessories] = useState([]);
+  const [lastUserInteractionTime, setLastUserInteractionTime] = useState(Date.now());
+  const [scrapbookGlow, setScrapbookGlow] = useState(false);
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -95,11 +100,14 @@ function App() {
   useEffect(() => {
     const spawnLetter = () => {
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
+      const timeSinceLastInteraction = Date.now() - lastUserInteractionTime;
+      const inactivityThreshold = 2 * 60 * 1000; // 2 minutes
+      
       // Much faster spawning: 3-8 seconds
       const spawnRate = avgNeeds >= 70 ? 3000 : avgNeeds >= 40 ? 5000 : 8000; // 3-8 seconds
       
       const timer = setTimeout(() => {
-        if (collectedLetters.length < 100) {
+        if (collectedLetters.length < 100 && timeSinceLastInteraction < inactivityThreshold) {
           const newLetter = {
             id: Date.now(),
             x: Math.random() * (window.innerWidth - 100),
@@ -120,10 +128,11 @@ function App() {
 
     const timer = spawnLetter();
     return () => clearTimeout(timer);
-  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length]);
+  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, lastUserInteractionTime]);
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {
+    setLastUserInteractionTime(Date.now());
     setPet(prev => ({
       ...prev,
       hunger: Math.min(100, prev.hunger + 25),
@@ -132,6 +141,7 @@ function App() {
   }, []);
 
   const handlePlay = useCallback(() => {
+    setLastUserInteractionTime(Date.now());
     setPet(prev => ({
       ...prev,
       happiness: Math.min(100, prev.happiness + 30),
@@ -141,6 +151,7 @@ function App() {
   }, []);
 
   const handleSleep = useCallback(() => {
+    setLastUserInteractionTime(Date.now());
     setPet(prev => ({
       ...prev,
       isSleeping: !prev.isSleeping
@@ -148,6 +159,7 @@ function App() {
   }, []);
 
   const handlePet = useCallback(() => {
+    setLastUserInteractionTime(Date.now());
     setPet(prev => ({
       ...prev,
       happiness: Math.min(100, prev.happiness + 15),
@@ -155,15 +167,32 @@ function App() {
     }));
   }, []);
 
+  const handlePetClick = useCallback(() => {
+    setLastUserInteractionTime(Date.now());
+  }, []);
+
   // Handle letter collection
   const handleLetterCollect = useCallback((letterId, content) => {
     setCollectedLetters(prev => [...prev, { id: letterId, content, timestamp: Date.now() }]);
     setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
+    
+    // Trigger scrapbook glow animation
+    setScrapbookGlow(true);
+    setTimeout(() => setScrapbookGlow(false), 1000);
   }, []);
 
   // Handle letter removal (when it falls off screen)
   const handleLetterRemove = useCallback((letterId) => {
     setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
+  }, []);
+
+  // Handle accessory toggle
+  const handleAccessoryToggle = useCallback((accessoryId) => {
+    setPetAccessories(prev => 
+      prev.includes(accessoryId) 
+        ? prev.filter(id => id !== accessoryId)
+        : [...prev, accessoryId]
+    );
   }, []);
 
   return (
@@ -174,7 +203,10 @@ function App() {
       <StatusBars pet={pet} />
       
       {/* Pet Sprite */}
-      <PetSprite pet={pet} />
+      <PetSprite pet={pet} onPetClick={handlePetClick} />
+      
+      {/* Pet Accessories */}
+      <PetAccessoryRenderer accessories={petAccessories} />
       
       {/* Action Menu */}
       <ActionMenu 
@@ -185,17 +217,26 @@ function App() {
         pet={pet}
       />
       
+      {/* Pet Accessories Menu */}
+      <PetAccessories 
+        pet={pet}
+        accessories={petAccessories}
+        onAccessoryToggle={handleAccessoryToggle}
+      />
+      
       {/* Scrapbook Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowScrapbook(true)}
-        className="fixed top-4 right-4 bg-gradient-to-r from-pet-purple to-pet-pink text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40"
+        className={`fixed top-4 right-4 bg-gradient-to-r from-pet-purple to-pet-pink text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40 ${
+          scrapbookGlow ? 'animate-pulse shadow-2xl shadow-pink-400' : ''
+        }`}
       >
         📖 Scrapbook ({collectedLetters.length}/100)
       </motion.button>
       
-      {/* Test Letter Spawner Button */}
+      {/* Spawn Letter Button */}
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -204,13 +245,13 @@ function App() {
             id: Date.now(),
             x: Math.random() * (window.innerWidth - 100),
             y: -50,
-            content: "Test letter! 💕"
+            content: "Spawned letter! 💕"
           };
           setActiveLetters(prev => [...prev, newLetter]);
         }}
         className="fixed top-4 left-4 bg-gradient-to-r from-green-400 to-green-600 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40"
       >
-        Test Letter
+        Spawn Letter
       </motion.button>
       
       {/* Active Letters */}

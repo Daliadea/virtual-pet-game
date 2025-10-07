@@ -7,7 +7,11 @@
 @layer base {
   body {
     font-family: 'Fredoka', 'Comic Sans MS', cursive;
-    background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 50%, #DDA0DD 100%);
+    background-image: url('assets/my-background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     min-height: 100vh;
     margin: 0;
     overflow-x: hidden;

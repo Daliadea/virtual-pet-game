@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
-const PetSprite = ({ pet }) => {
+const PetSprite = ({ pet, onPetClick }) => {
+  const [petName, setPetName] = useState('My Love');
+  const [isJiggling, setIsJiggling] = useState(false);
   const getChiikawaColor = () => {
     // Chiikawa is always white, but we can add a subtle tint based on mood
     switch (pet.mood) {
@@ -26,6 +28,19 @@ const PetSprite = ({ pet }) => {
 
   const eyeExpression = getEyeExpression();
 
+  const handleNameClick = () => {
+    const newName = prompt('Enter a new name for your pet:', petName);
+    if (newName && newName.trim()) {
+      setPetName(newName.trim());
+    }
+  };
+
+  const handlePetClick = () => {
+    setIsJiggling(true);
+    setTimeout(() => setIsJiggling(false), 600);
+    if (onPetClick) onPetClick();
+  };
+
   return (
     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
       {/* Pet Shadow */}
@@ -43,13 +58,15 @@ const PetSprite = ({ pet }) => {
         animate={{
           y: pet.isSleeping ? 0 : [0, -8, 0],
           rotate: pet.isSleeping ? 0 : [0, -1, 1, 0],
+          scale: isJiggling ? [1, 1.2, 1] : 1,
         }}
         transition={{
           duration: pet.isSleeping ? 0 : 2,
           repeat: pet.isSleeping ? 0 : Infinity,
-          ease: "easeInOut"
+          ease: "easeInOut",
+          scale: { duration: 0.6, ease: "easeOut" }
         }}
-        className="relative"
+        className="relative cursor-pointer"
         style={{
           width: '140px',
           height: '140px',
@@ -59,6 +76,7 @@ const PetSprite = ({ pet }) => {
           border: '2px solid #E5E5E5',
           position: 'relative'
         }}
+        onClick={handlePetClick}
       >
         {/* Chiikawa Ears */}
         <div className="absolute -top-4 left-6 w-8 h-8 bg-white rounded-full border-2 border-gray-200 transform rotate-12"></div>
@@ -190,20 +208,22 @@ const PetSprite = ({ pet }) => {
         )}
       </motion.div>
       
-      {/* Pet Name Tag */}
-      <motion.div
-        animate={{
-          y: [0, -5, 0],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-white rounded-full px-4 py-2 shadow-lg"
-      >
-        <span className="text-sm font-bold text-pet-purple">My Love</span>
-      </motion.div>
+        {/* Pet Name Tag */}
+        <motion.div
+          animate={{
+            y: [0, -5, 0],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-white rounded-full px-4 py-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={handleNameClick}
+          title="Click to change name"
+        >
+          <span className="text-sm font-bold text-pet-purple">{petName}</span>
+        </motion.div>
     </div>
   );
 };
