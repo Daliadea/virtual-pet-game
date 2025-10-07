@@ -28,7 +28,20 @@ function App() {
   const [lastUserInteractionTime, setLastUserInteractionTime] = useState(Date.now());
   const [scrapbookGlow, setScrapbookGlow] = useState(false);
   const [isLetterOnScreen, setIsLetterOnScreen] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const lastLetterIndexRef = useRef(-1);
+
+  // CRITICAL FIX: Track page visibility to pause spawning when tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const visible = !document.hidden;
+      setIsPageVisible(visible);
+      console.log(visible ? '👁️ Page is visible - resuming' : '🙈 Page hidden - pausing');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -57,6 +70,17 @@ function App() {
       setShowFinalSurprise(true);
     }
   }, [collectedLetters.length, allLettersUnlocked]);
+
+  // CRITICAL FIX: Sync isLetterOnScreen with actual activeLetters state
+  useEffect(() => {
+    if (activeLetters.length === 0 && isLetterOnScreen) {
+      console.log('🔄 No active letters but flag is true - resetting flag');
+      setIsLetterOnScreen(false);
+    } else if (activeLetters.length > 0 && !isLetterOnScreen) {
+      console.log('🔄 Active letters exist but flag is false - setting flag');
+      setIsLetterOnScreen(true);
+    }
+  }, [activeLetters.length, isLetterOnScreen]);
 
   // Pet needs decay over time (MUCH SLOWER for better game balance)
   useEffect(() => {
@@ -143,9 +167,9 @@ function App() {
       timerRef = setTimeout(() => {
         if (cancelled) return;
 
-        // CRITICAL FIX: Check if a letter is already on screen
-        if (isLetterOnScreen) {
-          console.log('⏸️ Letter already on screen - skipping spawn, will check again soon');
+        // CRITICAL FIX: Check if a letter is already on screen OR if scrapbook is open OR page is hidden
+        if (isLetterOnScreen || activeLetters.length > 0 || showScrapbook || !isPageVisible) {
+          console.log('⏸️ Skipping spawn - letter on screen:', activeLetters.length > 0, 'scrapbook open:', showScrapbook, 'page visible:', isPageVisible);
           // Retry in 5 seconds instead of the full interval
           timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
           return;
@@ -311,9 +335,14 @@ function App() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
-          // Respect the isLetterOnScreen check
-          if (isLetterOnScreen) {
-            console.log('Cannot spawn - letter already on screen');
+          // Respect all blocking conditions
+          if (isLetterOnScreen || activeLetters.length > 0 || showScrapbook || !isPageVisible) {
+            console.log('Cannot spawn - blocked by:', {
+              letterOnScreen: isLetterOnScreen,
+              activeCount: activeLetters.length,
+              scrapbookOpen: showScrapbook,
+              pageVisible: isPageVisible
+            });
             return;
           }
           

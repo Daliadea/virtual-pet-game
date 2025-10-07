@@ -8,10 +8,21 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   const [isMovingToScrapbook, setIsMovingToScrapbook] = useState(false);
   const [showAnimatedLetter, setShowAnimatedLetter] = useState(false);
   const [currentY, setCurrentY] = useState(letter.y);
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
-  // Make the letter fall - FIXED
+  // CRITICAL FIX: Track page visibility to pause falling when tab is hidden
   useEffect(() => {
-    if (!isFalling) return;
+    const handleVisibilityChange = () => {
+      setIsPageVisible(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  // Make the letter fall - FIXED to respect page visibility
+  useEffect(() => {
+    if (!isFalling || !isPageVisible) return;
 
     const fallInterval = setInterval(() => {
       setCurrentY(prevY => {
@@ -25,7 +36,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
     }, 50);
 
     return () => clearInterval(fallInterval);
-  }, [isFalling, letter.id, onRemove]);
+  }, [isFalling, isPageVisible, letter.id, onRemove]);
 
   // Auto-fall after 10 seconds
   useEffect(() => {
