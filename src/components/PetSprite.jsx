@@ -98,17 +98,17 @@ const PetSprite = ({ pet, onPetClick }) => {
   const movePetRandomly = () => {
     if (pet.isSleeping) return; // Don't move when sleeping
     
-    // Calculate very small offset from current position (subtle wandering effect)
-    const offsetX = (Math.random() - 0.5) * 8; // -4% to +4%
-    const offsetY = (Math.random() - 0.5) * 8; // -4% to +4%
+    // Calculate moderate offset from current position (natural wandering effect)
+    const offsetX = (Math.random() - 0.5) * 30; // -15% to +15%
+    const offsetY = (Math.random() - 0.5) * 30; // -15% to +15%
     
-    const newX = Math.max(30, Math.min(70, petPosition.x + offsetX)); // Keep within 30%-70%
-    const newY = Math.max(30, Math.min(70, petPosition.y + offsetY)); // Keep within 30%-70%
+    const newX = Math.max(20, Math.min(80, petPosition.x + offsetX)); // Keep within 20%-80%
+    const newY = Math.max(20, Math.min(80, petPosition.y + offsetY)); // Keep within 20%-80%
     
     setPetPosition({ x: newX, y: newY });
     
-    // Schedule next movement (much longer intervals for very calm movement)
-    const nextMoveDelay = 15000 + Math.random() * 25000; // 15-40 seconds
+    // Schedule next movement (longer intervals for calm movement)
+    const nextMoveDelay = 20000 + Math.random() * 30000; // 20-50 seconds
     setTimeout(movePetRandomly, nextMoveDelay);
   };
 

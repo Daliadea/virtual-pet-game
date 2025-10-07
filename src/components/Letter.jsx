@@ -203,15 +203,15 @@ const Letter = ({ letter, onCollect, onRemove }) => {
       {showAnimatedLetter && (
         <motion.div
           initial={{ 
-            x: window.innerWidth / 2 - 40,
-            y: window.innerHeight / 2 - 40,
+            x: window.innerWidth / 2 - 20,
+            y: window.innerHeight / 2 - 20,
             scale: 1,
             rotate: 0
           }}
           animate={{ 
             x: window.innerWidth - 150,
             y: 50,
-            scale: 0.3,
+            scale: 0.5,
             rotate: 360
           }}
           transition={{
@@ -220,19 +220,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           }}
           className="fixed z-50 pointer-events-none"
         >
-          <div
-            className="p-4 text-center"
-            style={{
-              backgroundColor: 'white',
-              borderRadius: '1rem',
-              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
-              border: '2px solid #FFB6C1',
-              minWidth: '80px',
-              minHeight: '80px'
-            }}
-          >
-            <div className="text-4xl">💌</div>
-          </div>
+          <div className="text-6xl">💌</div>
         </motion.div>
       )}
     </>
