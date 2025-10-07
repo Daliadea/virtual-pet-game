@@ -6,6 +6,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [isMovingToScrapbook, setIsMovingToScrapbook] = useState(false);
+  const [showAnimatedLetter, setShowAnimatedLetter] = useState(false);
 
   // Make the letter fall
   useEffect(() => {
@@ -39,20 +40,13 @@ const Letter = ({ letter, onCollect, onRemove }) => {
 
   const handleCollect = () => {
     setShowContent(false); // Close the modal first
-    setIsMovingToScrapbook(true);
+    setShowAnimatedLetter(true); // Show the animated letter from center
     
     // Wait for animation to complete before actually collecting
-    const animationElement = document.querySelector(`[data-letter-id="${letter.id}"]`);
-    if (animationElement) {
-      animationElement.addEventListener('transitionend', () => {
-        onCollect(letter.id, letter.content);
-      }, { once: true });
-    } else {
-      // Fallback if event listener fails
-      setTimeout(() => {
-        onCollect(letter.id, letter.content);
-      }, 2500); // 2.5 second animation
-    }
+    setTimeout(() => {
+      setShowAnimatedLetter(false);
+      onCollect(letter.id, letter.content);
+    }, 2500); // 2.5 second animation
   };
 
   return (
@@ -202,6 +196,46 @@ const Letter = ({ letter, onCollect, onRemove }) => {
               </motion.button>
             </div>
           </motion.div>
+        </motion.div>
+      )}
+
+      {/* Animated Letter from Center */}
+      {showAnimatedLetter && (
+        <motion.div
+          initial={{ 
+            x: window.innerWidth / 2 - 40,
+            y: window.innerHeight / 2 - 40,
+            scale: 1,
+            rotate: 0
+          }}
+          animate={{ 
+            x: window.innerWidth - 150,
+            y: 50,
+            scale: 0.3,
+            rotate: 360
+          }}
+          transition={{
+            duration: 2.5,
+            ease: "easeInOut"
+          }}
+          className="fixed z-50 pointer-events-none"
+        >
+          <div
+            className="p-4 text-center"
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+              border: '2px solid #FFB6C1',
+              minWidth: '80px',
+              minHeight: '80px'
+            }}
+          >
+            <div className="text-4xl mb-2">💌</div>
+            <div className="text-sm font-bold text-pet-purple">
+              Flying to Scrapbook!
+            </div>
+          </div>
         </motion.div>
       )}
     </>

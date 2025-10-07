@@ -198,6 +198,9 @@ function App() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
+      {/* Background Container */}
+      <div id="app-background"></div>
+      
       <Room />
       
       {/* Status Bars */}

@@ -51,27 +51,26 @@ const PetSprite = ({ pet, onPetClick }) => {
   const handleMouseDown = (e) => {
     setIsDragging(true);
     setDragStart({
-      x: e.clientX - petPosition.x,
-      y: e.clientY - petPosition.y
+      x: e.clientX,
+      y: e.clientY
     });
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
     
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
     
-    // Keep pet within screen bounds (avoiding UI elements)
-    const maxX = window.innerWidth - 200; // Leave space for UI
-    const maxY = window.innerHeight - 200; // Leave space for UI
-    const minX = 100; // Leave space for UI
-    const minY = 100; // Leave space for UI
+    // Convert pixel movement to percentage
+    const percentX = (deltaX / window.innerWidth) * 100;
+    const percentY = (deltaY / window.innerHeight) * 100;
     
-    const constrainedX = Math.max(minX, Math.min(maxX, newX));
-    const constrainedY = Math.max(minY, Math.min(maxY, newY));
+    const newX = Math.max(10, Math.min(90, petPosition.x + percentX));
+    const newY = Math.max(10, Math.min(90, petPosition.y + percentY));
     
-    setPetPosition({ x: constrainedX, y: constrainedY });
+    setPetPosition({ x: newX, y: newY });
+    setDragStart({ x: e.clientX, y: e.clientY });
   };
 
   const handleMouseUp = () => {
@@ -94,14 +93,34 @@ const PetSprite = ({ pet, onPetClick }) => {
     };
   }, [isDragging, dragStart, petPosition]);
 
+  // Autonomous movement function
+  const movePetRandomly = () => {
+    if (pet.isSleeping) return; // Don't move when sleeping
+    
+    const randomTop = 10 + Math.random() * 80; // 10% to 90%
+    const randomLeft = 10 + Math.random() * 80; // 10% to 90%
+    
+    setPetPosition({ x: randomLeft, y: randomTop });
+    
+    // Schedule next movement
+    const nextMoveDelay = 5000 + Math.random() * 5000; // 5-10 seconds
+    setTimeout(movePetRandomly, nextMoveDelay);
+  };
+
+  // Start autonomous movement on component mount
+  useEffect(() => {
+    const initialDelay = 3000 + Math.random() * 2000; // 3-5 seconds initial delay
+    setTimeout(movePetRandomly, initialDelay);
+  }, [pet.isSleeping]);
+
   return (
     <div 
+      id="pet-container"
       ref={petContainerRef}
-      className="absolute cursor-move"
+      className="cursor-move"
       style={{
-        left: petPosition.x,
-        top: petPosition.y,
-        transform: 'translate(-50%, -50%)'
+        left: `${petPosition.x}%`,
+        top: `${petPosition.y}%`
       }}
       onMouseDown={handleMouseDown}
     >
