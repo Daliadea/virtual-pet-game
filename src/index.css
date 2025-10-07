@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    font-family: 'Fredoka', 'Comic Sans MS', cursive;
+    background: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 50%, #DDA0DD 100%);
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+  }
+}
+
+@layer components {
+  .pet-button {
+    @apply bg-gradient-to-r from-pet-pink to-pet-purple text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 active:scale-95;
+  }
+  
+  .pet-button:disabled {
+    @apply opacity-50 cursor-not-allowed transform-none;
+  }
+  
+  .letter-envelope {
+    @apply bg-gradient-to-br from-white to-pet-yellow rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 cursor-pointer;
+  }
+  
+  .progress-bar {
+    @apply bg-gray-200 rounded-full h-4 overflow-hidden;
+  }
+  
+  .progress-fill {
+    @apply h-full transition-all duration-500 ease-out;
+  }
+}
