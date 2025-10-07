@@ -95,8 +95,8 @@ function App() {
   useEffect(() => {
     const spawnLetter = () => {
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
-      // Much faster spawning: 5-15 seconds instead of 25-45 seconds
-      const spawnRate = avgNeeds >= 70 ? 5000 : avgNeeds >= 40 ? 8000 : 12000; // 5-12 seconds
+      // Much faster spawning: 3-8 seconds
+      const spawnRate = avgNeeds >= 70 ? 3000 : avgNeeds >= 40 ? 5000 : 8000; // 3-8 seconds
       
       const timer = setTimeout(() => {
         if (collectedLetters.length < 100) {
@@ -107,7 +107,11 @@ function App() {
             content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
           };
           
-          setActiveLetters(prev => [...prev, newLetter]);
+          console.log('Spawning letter:', newLetter); // Debug log
+          setActiveLetters(prev => {
+            console.log('Active letters before:', prev.length); // Debug log
+            return [...prev, newLetter];
+          });
         }
       }, spawnRate);
 
@@ -189,6 +193,24 @@ function App() {
         className="fixed top-4 right-4 bg-gradient-to-r from-pet-purple to-pet-pink text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40"
       >
         📖 Scrapbook ({collectedLetters.length}/100)
+      </motion.button>
+      
+      {/* Test Letter Spawner Button */}
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => {
+          const newLetter = {
+            id: Date.now(),
+            x: Math.random() * (window.innerWidth - 100),
+            y: -50,
+            content: "Test letter! 💕"
+          };
+          setActiveLetters(prev => [...prev, newLetter]);
+        }}
+        className="fixed top-4 left-4 bg-gradient-to-r from-green-400 to-green-600 text-white font-bold py-2 px-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 z-40"
+      >
+        Test Letter
       </motion.button>
       
       {/* Active Letters */}

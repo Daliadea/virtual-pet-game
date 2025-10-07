@@ -136,15 +136,6 @@ const PetSprite = ({ pet }) => {
           />
         )}
 
-        {/* Chiikawa Whiskers */}
-        {!pet.isSleeping && (
-          <>
-            <div className="absolute top-16 left-2 w-8 h-0.5 bg-gray-400 rounded-full transform rotate-12"></div>
-            <div className="absolute top-18 left-1 w-6 h-0.5 bg-gray-400 rounded-full transform rotate-12"></div>
-            <div className="absolute top-16 right-2 w-8 h-0.5 bg-gray-400 rounded-full transform -rotate-12"></div>
-            <div className="absolute top-18 right-1 w-6 h-0.5 bg-gray-400 rounded-full transform -rotate-12"></div>
-          </>
-        )}
 
         {/* Chiikawa Mouth */}
         <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">

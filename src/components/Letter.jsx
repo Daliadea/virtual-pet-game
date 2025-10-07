@@ -65,7 +65,7 @@ const Letter = ({ letter, onCollect, onRemove }) => {
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`fixed z-30 cursor-pointer ${isFalling ? 'animate-bounce-gentle' : ''}`}
+        className={`fixed z-50 cursor-pointer ${isFalling ? 'animate-bounce-gentle' : ''}`}
         style={{ left: letter.x, top: letter.y }}
       >
         <motion.div
@@ -75,6 +75,14 @@ const Letter = ({ letter, onCollect, onRemove }) => {
           }}
           transition={{ duration: 0.3 }}
           className="letter-envelope p-4 text-center"
+          style={{
+            backgroundColor: 'white',
+            borderRadius: '1rem',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)',
+            border: '2px solid #FFB6C1',
+            minWidth: '80px',
+            minHeight: '80px'
+          }}
         >
           <div className="text-4xl mb-2">💌</div>
           <div className="text-sm font-bold text-pet-purple">
