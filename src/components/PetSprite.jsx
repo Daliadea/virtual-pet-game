@@ -4,11 +4,22 @@ import { motion } from 'framer-motion';
 const PetSprite = ({ pet, onPetClick }) => {
   const [petName, setPetName] = useState('My Love');
   const [isJiggling, setIsJiggling] = useState(false);
-  const [petPosition, setPetPosition] = useState({ x: 0, y: 0 });
+  const [petPosition, setPetPosition] = useState({ x: 50, y: 50 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const petContainerRef = useRef(null);
   const movementTimerRef = useRef(null);
+  const isSleepingRef = useRef(pet.isSleeping);
+  const isDraggingRef = useRef(false);
+
+  // Keep refs in sync
+  useEffect(() => {
+    isSleepingRef.current = pet.isSleeping;
+  }, [pet.isSleeping]);
+
+  useEffect(() => {
+    isDraggingRef.current = isDragging;
+  }, [isDragging]);
   const getChiikawaColor = () => {
     // Chiikawa is always white, but we can add a subtle tint based on mood
     switch (pet.mood) {
@@ -48,12 +59,13 @@ const PetSprite = ({ pet, onPetClick }) => {
     }
   };
 
-  // Autonomous movement and scheduling - FIXED with proper dependencies
+  // Autonomous movement and scheduling - FIXED to use refs and avoid dependency issues
   const movePetRandomly = useCallback(() => {
-    console.log('movePetRandomly called - sleeping:', pet.isSleeping, 'dragging:', isDragging);
+    console.log('🐾 movePetRandomly called - sleeping:', isSleepingRef.current, 'dragging:', isDraggingRef.current);
     
-    // CRITICAL: Don't move when sleeping or being dragged
-    if (pet.isSleeping || isDragging) {
+    // CRITICAL: Don't move when sleeping or being dragged (use refs!)
+    if (isSleepingRef.current || isDraggingRef.current) {
+      console.log('⏸️ Not moving - waiting...');
       return;
     }
     
@@ -67,9 +79,9 @@ const PetSprite = ({ pet, onPetClick }) => {
     const newX = minX + Math.random() * (maxX - minX);
     const newY = minY + Math.random() * (maxY - minY);
     
-    console.log('Moving pet to:', newX, newY);
+    console.log('✅ Moving pet to:', newX.toFixed(1) + '%', newY.toFixed(1) + '%');
     setPetPosition({ x: newX, y: newY });
-  }, [pet.isSleeping, isDragging]);
+  }, []); // No dependencies - uses refs!
 
   const scheduleNextMovement = useCallback((immediate = false) => {
     // Clear any existing timer
@@ -78,9 +90,9 @@ const PetSprite = ({ pet, onPetClick }) => {
       movementTimerRef.current = null;
     }
     
-    // Don't schedule if sleeping or dragging
-    if (pet.isSleeping || isDragging) {
-      console.log('Not scheduling - sleeping:', pet.isSleeping, 'dragging:', isDragging);
+    // Don't schedule if sleeping or dragging (use refs!)
+    if (isSleepingRef.current || isDraggingRef.current) {
+      console.log('⏸️ Not scheduling - sleeping:', isSleepingRef.current, 'dragging:', isDraggingRef.current);
       return;
     }
     
@@ -89,20 +101,24 @@ const PetSprite = ({ pet, onPetClick }) => {
       ? 1000 + Math.random() * 1000
       : 8000 + Math.random() * 12000;
     
-    console.log('Scheduling next movement in', nextMoveDelay, 'ms');
+    console.log('⏰ Scheduling next movement in', (nextMoveDelay/1000).toFixed(1), 'seconds');
     movementTimerRef.current = setTimeout(() => {
       movePetRandomly();
       // After moving, schedule the next one
-      scheduleNextMovement();
+      scheduleNextMovement(false);
     }, nextMoveDelay);
-  }, [pet.isSleeping, isDragging, movePetRandomly]);
+  }, [movePetRandomly]); // Only depends on movePetRandomly which has no dependencies!
 
-  // Start autonomous movement on component mount
+  // Start autonomous movement on component mount ONLY ONCE
   useEffect(() => {
-    console.log('Initial mount - starting movement loop');
-    scheduleNextMovement(false);
+    console.log('🚀 Initial mount - starting movement loop');
+    const timer = setTimeout(() => {
+      scheduleNextMovement(false);
+    }, 3000); // Start after 3 seconds
     
     return () => {
+      console.log('🛑 Component unmounting - cleaning up timer');
+      clearTimeout(timer);
       if (movementTimerRef.current) {
         clearTimeout(movementTimerRef.current);
         movementTimerRef.current = null;
@@ -114,29 +130,29 @@ const PetSprite = ({ pet, onPetClick }) => {
   useEffect(() => {
     if (pet.isSleeping) {
       // Pet is going to sleep - STOP ALL MOVEMENT
-      console.log('Pet going to sleep - stopping movement');
+      console.log('😴 Pet going to sleep - stopping movement');
       if (movementTimerRef.current) {
         clearTimeout(movementTimerRef.current);
         movementTimerRef.current = null;
       }
     } else {
       // Pet is waking up - RESTART MOVEMENT
-      console.log('Pet waking up - restarting movement');
+      console.log('👀 Pet waking up - restarting movement');
       // Only restart if not currently dragging and no timer is active
-      if (!isDragging && !movementTimerRef.current) {
+      if (!isDraggingRef.current && !movementTimerRef.current) {
         scheduleNextMovement(true);
       }
     }
-  }, [pet.isSleeping, isDragging, scheduleNextMovement]);
+  }, [pet.isSleeping, scheduleNextMovement]);
 
   // CRITICAL FIX: Ensure movement restarts after dragging ends
   useEffect(() => {
     // When dragging ends, make sure movement restarts (if not sleeping)
-    if (!isDragging && !pet.isSleeping && !movementTimerRef.current) {
-      console.log('Drag ended - restarting movement');
+    if (!isDragging && !isSleepingRef.current && !movementTimerRef.current) {
+      console.log('🖱️ Drag ended - restarting movement');
       scheduleNextMovement(true);
     }
-  }, [isDragging, pet.isSleeping, scheduleNextMovement]);
+  }, [isDragging, scheduleNextMovement]);
 
   return (
     <motion.div 

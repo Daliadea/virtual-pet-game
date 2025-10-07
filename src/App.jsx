@@ -93,7 +93,7 @@ function App() {
     }
   }, [pet.hunger, pet.happiness, pet.energy]);
 
-  // CRITICAL FIX: Mood-based letter spawning with dynamic intervals (reliable loop)
+  // CRITICAL FIX: Mood-based letter spawning - PROPERLY FIXED to not restart on every stat change
   useEffect(() => {
     // Don't spawn letters if all are collected
     if (collectedLetters.length >= 100) {
@@ -107,22 +107,23 @@ function App() {
     const spawnLetterBasedOnMood = () => {
       if (cancelled) return;
 
-      const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
+      // Read current pet stats at spawn time (not from dependencies)
+      const currentAvgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
       
       // Calculate spawn chance and interval based on pet's mood
       let spawnChance = 1.0;
       let baseInterval = 15000;
       
-      if (avgNeeds >= 80) {
+      if (currentAvgNeeds >= 80) {
         baseInterval = 15000;
         spawnChance = 1.0;
-      } else if (avgNeeds >= 60) {
+      } else if (currentAvgNeeds >= 60) {
         baseInterval = 20000;
         spawnChance = 0.9;
-      } else if (avgNeeds >= 40) {
+      } else if (currentAvgNeeds >= 40) {
         baseInterval = 30000;
         spawnChance = 0.7;
-      } else if (avgNeeds >= 20) {
+      } else if (currentAvgNeeds >= 20) {
         baseInterval = 45000;
         spawnChance = 0.4;
       } else {
@@ -134,14 +135,14 @@ function App() {
       const randomVariation = baseInterval * 0.3;
       const actualInterval = baseInterval + (Math.random() * randomVariation * 2 - randomVariation);
 
-      console.log('Letter spawn scheduled in', actualInterval, 'ms. Pet mood:', avgNeeds, 'Spawn chance:', spawnChance);
+      console.log('Letter spawn scheduled in', (actualInterval/1000).toFixed(1), 'seconds. Pet mood:', currentAvgNeeds.toFixed(1), 'Spawn chance:', (spawnChance*100) + '%');
 
       // Schedule next spawn check
       timerRef = setTimeout(() => {
         if (cancelled) return;
 
         const roll = Math.random();
-        console.log('Letter spawn check - rolled:', roll, 'need <', spawnChance);
+        console.log('Letter spawn check - rolled:', roll.toFixed(2), 'need <', spawnChance.toFixed(2));
         
         // Check if letter should spawn based on chance
         if (roll < spawnChance) {
@@ -155,10 +156,10 @@ function App() {
             content: allLetters[nextLetterIndex] || "I love you more than words can express! 💕"
           };
           
-          console.log('SPAWNING LETTER:', newLetter);
+          console.log('✉️ SPAWNING LETTER at x:', newLetter.x.toFixed(0), 'y:', newLetter.y);
           setActiveLetters(prev => [...prev, newLetter]);
         } else {
-          console.log('Letter spawn failed chance check');
+          console.log('❌ Letter spawn failed chance check');
         }
 
         // Chain next spawn check
@@ -167,18 +168,18 @@ function App() {
     };
 
     // Start the spawn loop
-    console.log('Starting letter spawn loop');
+    console.log('🚀 Starting letter spawn loop');
     spawnLetterBasedOnMood();
 
     // Cleanup
     return () => {
-      console.log('Cleaning up letter spawn loop');
+      console.log('🛑 Cleaning up letter spawn loop');
       cancelled = true;
       if (timerRef) {
         clearTimeout(timerRef);
       }
     };
-  }, [collectedLetters.length, pet.hunger, pet.happiness, pet.energy]);
+  }, [collectedLetters.length]); // ONLY depend on collectedLetters.length, NOT pet stats!
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {
