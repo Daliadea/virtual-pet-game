@@ -2,13 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 const PetSprite = ({ pet }) => {
-  const getPetColor = () => {
+  const getChiikawaColor = () => {
+    // Chiikawa is always white, but we can add a subtle tint based on mood
     switch (pet.mood) {
-      case 'happy': return '#98FB98';
-      case 'content': return '#FFE4B5';
-      case 'sad': return '#FFB6C1';
-      case 'critical': return '#FF6B6B';
-      default: return '#98FB98';
+      case 'happy': return '#FFFFFF';
+      case 'content': return '#FFF8F0';
+      case 'sad': return '#F5F5F5';
+      case 'critical': return '#F0F0F0';
+      default: return '#FFFFFF';
     }
   };
 
@@ -37,7 +38,7 @@ const PetSprite = ({ pet }) => {
         className="absolute top-20 left-1/2 transform -translate-x-1/2 w-16 h-6 bg-black rounded-full blur-sm"
       />
       
-      {/* Pet Body */}
+      {/* Chiikawa Body */}
       <motion.div
         animate={{
           y: pet.isSleeping ? 0 : [0, -8, 0],
@@ -50,56 +51,70 @@ const PetSprite = ({ pet }) => {
         }}
         className="relative"
         style={{
-          width: '120px',
-          height: '120px',
-          backgroundColor: getPetColor(),
+          width: '140px',
+          height: '140px',
+          backgroundColor: getChiikawaColor(),
           borderRadius: '50%',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)',
-          border: '3px solid white'
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15)',
+          border: '2px solid #E5E5E5',
+          position: 'relative'
         }}
       >
-        {/* Eyes */}
-        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 flex space-x-4">
+        {/* Chiikawa Ears */}
+        <div className="absolute -top-4 left-6 w-8 h-8 bg-white rounded-full border-2 border-gray-200 transform rotate-12"></div>
+        <div className="absolute -top-4 right-6 w-8 h-8 bg-white rounded-full border-2 border-gray-200 transform -rotate-12"></div>
+        
+        {/* Inner ear details */}
+        <div className="absolute -top-2 left-7 w-4 h-4 bg-pink-100 rounded-full"></div>
+        <div className="absolute -top-2 right-7 w-4 h-4 bg-pink-100 rounded-full"></div>
+        {/* Chiikawa Eyes */}
+        <div className="absolute top-12 left-1/2 transform -translate-x-1/2 flex space-x-6">
           {eyeExpression === 'closed' ? (
             // Sleeping eyes
             <>
-              <div className="w-3 h-1 bg-black rounded-full"></div>
-              <div className="w-3 h-1 bg-black rounded-full"></div>
+              <div className="w-4 h-2 bg-black rounded-full"></div>
+              <div className="w-4 h-2 bg-black rounded-full"></div>
             </>
           ) : eyeExpression === 'happy' ? (
-            // Happy eyes
+            // Happy eyes (big and sparkly like Chiikawa)
             <>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center relative">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="absolute top-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center relative">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="absolute top-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
             </>
           ) : eyeExpression === 'sad' ? (
-            // Sad eyes
+            // Sad eyes (droopy)
             <>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center relative">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="absolute top-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center relative">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="absolute top-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
             </>
           ) : (
-            // Normal eyes
+            // Normal eyes (Chiikawa's big round eyes)
             <>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center relative">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="absolute top-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
-              <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
+              <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center relative">
+                <div className="w-4 h-4 bg-white rounded-full"></div>
+                <div className="absolute top-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
             </>
           )}
         </div>
 
-        {/* Blushing Cheeks */}
+        {/* Chiikawa Blushing Cheeks */}
         {pet.mood === 'happy' && !pet.isSleeping && (
           <motion.div
             animate={{
@@ -107,7 +122,7 @@ const PetSprite = ({ pet }) => {
               opacity: [0.7, 1, 0.7]
             }}
             transition={{ duration: 2, repeat: Infinity }}
-            className="absolute top-12 left-2 w-4 h-4 bg-pink-300 rounded-full opacity-70"
+            className="absolute top-16 left-4 w-5 h-5 bg-pink-200 rounded-full opacity-80"
           />
         )}
         {pet.mood === 'happy' && !pet.isSleeping && (
@@ -117,28 +132,38 @@ const PetSprite = ({ pet }) => {
               opacity: [0.7, 1, 0.7]
             }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-            className="absolute top-12 right-2 w-4 h-4 bg-pink-300 rounded-full opacity-70"
+            className="absolute top-16 right-4 w-5 h-5 bg-pink-200 rounded-full opacity-80"
           />
         )}
 
-        {/* Mouth */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        {/* Chiikawa Whiskers */}
+        {!pet.isSleeping && (
+          <>
+            <div className="absolute top-16 left-2 w-8 h-0.5 bg-gray-400 rounded-full transform rotate-12"></div>
+            <div className="absolute top-18 left-1 w-6 h-0.5 bg-gray-400 rounded-full transform rotate-12"></div>
+            <div className="absolute top-16 right-2 w-8 h-0.5 bg-gray-400 rounded-full transform -rotate-12"></div>
+            <div className="absolute top-18 right-1 w-6 h-0.5 bg-gray-400 rounded-full transform -rotate-12"></div>
+          </>
+        )}
+
+        {/* Chiikawa Mouth */}
+        <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2">
           {eyeExpression === 'closed' ? (
-            // Sleeping mouth
-            <div className="w-6 h-1 bg-black rounded-full"></div>
+            // Sleeping mouth (small line)
+            <div className="w-4 h-1 bg-black rounded-full"></div>
           ) : eyeExpression === 'happy' ? (
-            // Happy mouth
+            // Happy mouth (small smile like Chiikawa)
             <motion.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-8 h-4 border-2 border-black rounded-full border-t-0"
+              className="w-6 h-3 border-2 border-black rounded-full border-t-0"
             />
           ) : eyeExpression === 'sad' ? (
-            // Sad mouth
-            <div className="w-6 h-3 border-2 border-black rounded-full border-b-0"></div>
+            // Sad mouth (small frown)
+            <div className="w-4 h-2 border-2 border-black rounded-full border-b-0"></div>
           ) : (
-            // Normal mouth
-            <div className="w-6 h-1 bg-black rounded-full"></div>
+            // Normal mouth (small neutral)
+            <div className="w-4 h-1 bg-black rounded-full"></div>
           )}
         </div>
 

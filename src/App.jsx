@@ -95,7 +95,8 @@ function App() {
   useEffect(() => {
     const spawnLetter = () => {
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
-      const spawnRate = avgNeeds >= 70 ? 25000 : avgNeeds >= 40 ? 35000 : 45000; // 25-45 seconds
+      // Much faster spawning: 5-15 seconds instead of 25-45 seconds
+      const spawnRate = avgNeeds >= 70 ? 5000 : avgNeeds >= 40 ? 8000 : 12000; // 5-12 seconds
       
       const timer = setTimeout(() => {
         if (collectedLetters.length < 100) {
