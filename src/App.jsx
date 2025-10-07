@@ -30,18 +30,31 @@ function App() {
   const [isLetterOnScreen, setIsLetterOnScreen] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const lastLetterIndexRef = useRef(-1);
+  const isPageVisibleRef = useRef(true);
+  const showScrapbookRef = useRef(false);
+  const activeLettersRef = useRef([]);
 
   // CRITICAL FIX: Track page visibility to pause spawning when tab is hidden
   useEffect(() => {
     const handleVisibilityChange = () => {
       const visible = !document.hidden;
       setIsPageVisible(visible);
+      isPageVisibleRef.current = visible;
       console.log(visible ? '👁️ Page is visible - resuming' : '🙈 Page hidden - pausing');
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    activeLettersRef.current = activeLetters;
+  }, [activeLetters]);
+
+  useEffect(() => {
+    showScrapbookRef.current = showScrapbook;
+  }, [showScrapbook]);
 
   // Load saved data from localStorage
   useEffect(() => {
@@ -167,16 +180,28 @@ function App() {
       timerRef = setTimeout(() => {
         if (cancelled) return;
 
+        // CRITICAL: Use REFS to check current values (not stale closures!)
+        const currentActiveCount = activeLettersRef.current.length;
+        const currentScrapbookOpen = showScrapbookRef.current;
+        const currentPageVisible = isPageVisibleRef.current;
+
         // CRITICAL: PRIMARY CHECK - NEVER spawn if ANY letters exist
-        if (activeLetters.length > 0) {
-          console.log('🚫 BLOCKED: ' + activeLetters.length + ' letter(s) still on screen - retrying in 5s');
+        if (currentActiveCount > 0) {
+          console.log('🚫 BLOCKED: ' + currentActiveCount + ' letter(s) still on screen - retrying in 5s');
           timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
           return;
         }
 
         // Secondary check - also block if scrapbook is open
-        if (showScrapbook) {
+        if (currentScrapbookOpen) {
           console.log('📖 BLOCKED: Scrapbook is open - retrying in 5s');
+          timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
+          return;
+        }
+
+        // CRITICAL: Block if page is not visible
+        if (!currentPageVisible) {
+          console.log('🙈 BLOCKED: Page is hidden - retrying in 5s');
           timerRef = setTimeout(() => spawnLetterBasedOnMood(), 5000);
           return;
         }
@@ -221,12 +246,12 @@ function App() {
           console.log('✅ SPAWNING LETTER #' + nextLetterIndex + ' (previous was #' + (lastLetterIndexRef.current === nextLetterIndex ? 'same' : lastLetterIndexRef.current) + ')');
           console.log('📝 Message preview:', newLetter.content.substring(0, 50) + '...');
           
-          // Double-check before actually spawning
-          if (activeLetters.length === 0) {
+          // Double-check before actually spawning using REF (current value)
+          if (activeLettersRef.current.length === 0) {
             setActiveLetters(prev => [...prev, newLetter]);
             setIsLetterOnScreen(true);
           } else {
-            console.log('⚠️ ABORT: Letter appeared while preparing to spawn!');
+            console.log('⚠️ ABORT: Letter appeared while preparing to spawn! Count:', activeLettersRef.current.length);
           }
         } else {
           console.log('❌ Spawn chance failed');
@@ -371,15 +396,26 @@ function App() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => {
+          // CRITICAL: Use REFS to check current values
+          const currentActiveCount = activeLettersRef.current.length;
+          const currentScrapbookOpen = showScrapbookRef.current;
+          const currentPageVisible = isPageVisibleRef.current;
+
           // CRITICAL: PRIMARY CHECK - Block if ANY letters exist
-          if (activeLetters.length > 0) {
-            console.log('🚫 MANUAL SPAWN BLOCKED: ' + activeLetters.length + ' letter(s) already on screen');
+          if (currentActiveCount > 0) {
+            console.log('🚫 MANUAL SPAWN BLOCKED: ' + currentActiveCount + ' letter(s) already on screen');
             return;
           }
           
           // Also block if scrapbook is open
-          if (showScrapbook) {
+          if (currentScrapbookOpen) {
             console.log('🚫 MANUAL SPAWN BLOCKED: Scrapbook is open');
+            return;
+          }
+
+          // Also block if page is not visible
+          if (!currentPageVisible) {
+            console.log('🚫 MANUAL SPAWN BLOCKED: Page is hidden');
             return;
           }
           
