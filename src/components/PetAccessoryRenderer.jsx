@@ -7,7 +7,7 @@ const PetAccessoryRenderer = ({ accessories }) => {
       case 'bow':
         return {
           position: 'absolute',
-          top: '-10px',
+          top: 'calc(50% - 70px - 15px)', // Above the pet body
           left: '50%',
           transform: 'translateX(-50%)',
           fontSize: '1.5rem',
@@ -16,7 +16,7 @@ const PetAccessoryRenderer = ({ accessories }) => {
       case 'glasses':
         return {
           position: 'absolute',
-          top: '20px',
+          top: 'calc(50% - 70px + 20px)', // On the pet's face area
           left: '50%',
           transform: 'translateX(-50%)',
           fontSize: '2rem',
@@ -25,7 +25,7 @@ const PetAccessoryRenderer = ({ accessories }) => {
       case 'hat':
         return {
           position: 'absolute',
-          top: '-20px',
+          top: 'calc(50% - 70px - 25px)', // Above the pet body
           left: '50%',
           transform: 'translateX(-50%)',
           fontSize: '2rem',
@@ -34,15 +34,15 @@ const PetAccessoryRenderer = ({ accessories }) => {
       case 'flower':
         return {
           position: 'absolute',
-          top: '10px',
-          right: '20px',
+          top: 'calc(50% - 70px + 10px)', // On the pet's head area
+          right: 'calc(50% - 70px + 20px)', // Right side of pet
           fontSize: '1.2rem',
           zIndex: 10
         };
       case 'crown':
         return {
           position: 'absolute',
-          top: '-15px',
+          top: 'calc(50% - 70px - 20px)', // Above the pet body
           left: '50%',
           transform: 'translateX(-50%)',
           fontSize: '1.8rem',
@@ -51,7 +51,7 @@ const PetAccessoryRenderer = ({ accessories }) => {
       case 'scarf':
         return {
           position: 'absolute',
-          top: '60px',
+          top: 'calc(50% - 70px + 60px)', // Around the pet's neck area
           left: '50%',
           transform: 'translateX(-50%)',
           fontSize: '1.5rem',

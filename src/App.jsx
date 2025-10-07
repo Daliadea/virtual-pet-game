@@ -100,29 +100,27 @@ function App() {
   useEffect(() => {
     const spawnLetter = () => {
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
-      const timeSinceLastInteraction = Date.now() - lastUserInteractionTime;
-      const inactivityThreshold = 5 * 60 * 1000; // 5 minutes (increased from 2 minutes)
       
       // Much faster spawning: 3-8 seconds
       const spawnRate = avgNeeds >= 70 ? 3000 : avgNeeds >= 40 ? 5000 : 8000; // 3-8 seconds
       
       const timer = setTimeout(() => {
         if (collectedLetters.length < 100) {
-          // Only check inactivity if pet needs are low
-          if (avgNeeds < 50 && timeSinceLastInteraction > inactivityThreshold) {
-            console.log('Letter spawning paused due to inactivity');
-            return;
-          }
-          
-          const newLetter = {
-            id: Date.now(),
-            x: Math.random() * (window.innerWidth - 100),
-            y: -50,
-            content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
-          };
-          
-          console.log('Spawning letter:', newLetter); // Debug log
           setActiveLetters(prev => {
+            // Limit to maximum 3 letters on screen
+            if (prev.length >= 3) {
+              console.log('Maximum 3 letters on screen, skipping spawn');
+              return prev;
+            }
+            
+            const newLetter = {
+              id: Date.now(),
+              x: Math.random() * (window.innerWidth - 100),
+              y: -50,
+              content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
+            };
+            
+            console.log('Spawning letter:', newLetter); // Debug log
             console.log('Active letters before:', prev.length); // Debug log
             return [...prev, newLetter];
           });
@@ -134,7 +132,7 @@ function App() {
 
     const timer = spawnLetter();
     return () => clearTimeout(timer);
-  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, lastUserInteractionTime]);
+  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, activeLetters.length]);
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {
