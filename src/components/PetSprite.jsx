@@ -121,10 +121,12 @@ const PetSprite = ({ pet, onPetClick }) => {
     <div 
       id="pet-container"
       ref={petContainerRef}
-      className="cursor-move"
+      className="cursor-move fixed"
       style={{
         left: `${petPosition.x}%`,
-        top: `${petPosition.y}%`
+        top: `${petPosition.y}%`,
+        transform: 'translate(-50%, -50%)',
+        zIndex: 10
       }}
       onMouseDown={handleMouseDown}
     >
