@@ -101,13 +101,19 @@ function App() {
     const spawnLetter = () => {
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
       const timeSinceLastInteraction = Date.now() - lastUserInteractionTime;
-      const inactivityThreshold = 2 * 60 * 1000; // 2 minutes
+      const inactivityThreshold = 5 * 60 * 1000; // 5 minutes (increased from 2 minutes)
       
       // Much faster spawning: 3-8 seconds
       const spawnRate = avgNeeds >= 70 ? 3000 : avgNeeds >= 40 ? 5000 : 8000; // 3-8 seconds
       
       const timer = setTimeout(() => {
-        if (collectedLetters.length < 100 && timeSinceLastInteraction < inactivityThreshold) {
+        if (collectedLetters.length < 100) {
+          // Only check inactivity if pet needs are low
+          if (avgNeeds < 50 && timeSinceLastInteraction > inactivityThreshold) {
+            console.log('Letter spawning paused due to inactivity');
+            return;
+          }
+          
           const newLetter = {
             id: Date.now(),
             x: Math.random() * (window.innerWidth - 100),
@@ -182,7 +188,7 @@ function App() {
   }, []);
 
   // Handle letter removal (when it falls off screen)
-  const handleLetterRemove = useCallback((letterId) => {
+  const handleActiveLetterRemove = useCallback((letterId) => {
     setActiveLetters(prev => prev.filter(letter => letter.id !== letterId));
   }, []);
 
@@ -193,6 +199,13 @@ function App() {
         ? prev.filter(id => id !== accessoryId)
         : [...prev, accessoryId]
     );
+  }, []);
+
+  // Handle letter removal from scrapbook
+  const handleLetterRemove = useCallback((letterId) => {
+    if (window.confirm('Are you sure you want to remove this letter? You can get it back by playing the game!')) {
+      setCollectedLetters(prev => prev.filter(letter => letter.id !== letterId));
+    }
   }, []);
 
   return (
@@ -261,7 +274,7 @@ function App() {
             key={letter.id}
             letter={letter}
             onCollect={handleLetterCollect}
-            onRemove={handleLetterRemove}
+            onRemove={handleActiveLetterRemove}
           />
         ))}
       </AnimatePresence>
@@ -272,6 +285,7 @@ function App() {
           <ScrapbookPage 
             letters={collectedLetters}
             onClose={() => setShowScrapbook(false)}
+            onRemoveLetter={handleLetterRemove}
           />
         )}
       </AnimatePresence>

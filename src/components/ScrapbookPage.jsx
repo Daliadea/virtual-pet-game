@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ScrapbookPage = ({ letters, onClose }) => {
+const ScrapbookPage = ({ letters, onClose, onRemoveLetter }) => {
   const [selectedLetter, setSelectedLetter] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const lettersPerPage = 9;
@@ -111,9 +111,21 @@ const ScrapbookPage = ({ letters, onClose }) => {
                       <p className="text-sm text-gray-500 mb-3">
                         {formatDate(letter.timestamp)}
                       </p>
-                      <div className="text-sm text-gray-600 line-clamp-3">
+                      <div className="text-sm text-gray-600 line-clamp-3 mb-3">
                         {letter.content.substring(0, 80)}...
                       </div>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onRemoveLetter(letter.id);
+                        }}
+                        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-1 px-2 rounded-full transition-all duration-200"
+                        title="Delete this letter"
+                      >
+                        🗑️ Delete
+                      </motion.button>
                     </div>
                   </motion.div>
                 ))}
@@ -204,14 +216,28 @@ const ScrapbookPage = ({ letters, onClose }) => {
                 </p>
               </div>
               
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedLetter(null)}
-                className="bg-gradient-to-r from-pet-pink to-pet-purple text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                Close
-              </motion.button>
+              <div className="flex space-x-4 justify-center">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    onRemoveLetter(selectedLetter.id);
+                    setSelectedLetter(null);
+                  }}
+                  className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  🗑️ Delete Letter
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedLetter(null)}
+                  className="bg-gradient-to-r from-pet-pink to-pet-purple text-white font-bold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  Close
+                </motion.button>
+              </div>
             </motion.div>
           </motion.div>
         )}
