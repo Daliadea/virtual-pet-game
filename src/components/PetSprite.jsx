@@ -118,9 +118,14 @@ const PetSprite = ({ pet, onPetClick }) => {
         }
         setIsDragging(true);
       }}
-      onDragEnd={() => {
+      onDragEnd={(e, info) => {
         setIsDragging(false);
-        // CRITICAL: Resume autonomous movement after dragging with immediate (short) delay
+        // Reset any drag offset applied by Framer Motion to ensure left/top take effect next move
+        // This prevents the element from appearing "stuck" after user drag
+        if (petContainerRef.current) {
+          petContainerRef.current.style.transform = 'translate(-50%, -50%)';
+        }
+        // Resume autonomous movement quickly
         scheduleNextMovement(true);
       }}
     >

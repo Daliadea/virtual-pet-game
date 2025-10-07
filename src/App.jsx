@@ -93,37 +93,42 @@ function App() {
     }
   }, [pet.hunger, pet.happiness, pet.energy]);
 
-  // Mood-based letter spawning with dynamic intervals
+  // Mood-based letter spawning with dynamic intervals (reliable loop)
   useEffect(() => {
-    const spawnLetter = () => {
+    let cancelled = false;
+
+    const planNext = () => {
+      if (cancelled) return;
       if (collectedLetters.length >= 100) return;
-      
+
       const avgNeeds = (pet.hunger + pet.happiness + pet.energy) / 3;
-      
-      // Calculate spawn interval based on pet mood: 15-30 seconds
-      // Perfect mood (100%) = 15 seconds, Bad mood (0%) = 30 seconds
-      const spawnInterval = 30000 - (avgNeeds / 100) * 15000; // 30s - (mood% * 15s) = 15-30s range
-      
-      console.log(`Letter will spawn in ${spawnInterval / 1000} seconds (Pet mood: ${avgNeeds.toFixed(0)}%)`);
-      
-      const timer = setTimeout(() => {
-        const newLetter = {
-          id: Date.now(),
-          x: Math.random() * (window.innerWidth - 100),
-          y: -50,
-          content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
-        };
-        
-        console.log('Natural letter spawned!', newLetter);
-        setActiveLetters(prev => [...prev, newLetter]);
+      // 15s (perfect) -> 30s (worst)
+      const spawnInterval = 30000 - (avgNeeds / 100) * 15000;
+
+      const t = setTimeout(() => {
+        if (cancelled) return;
+        // Only spawn if mood is reasonable (>40) to avoid spam in poor care
+        if (avgNeeds > 40) {
+          const newLetter = {
+            id: Date.now(),
+            x: Math.random() * (window.innerWidth - 100),
+            y: -50,
+            content: generateLoveLetters()[collectedLetters.length] || "I love you more than words can express! 💕"
+          };
+          setActiveLetters(prev => [...prev, newLetter]);
+        }
+        // Chain next spawn
+        planNext();
       }, spawnInterval);
 
-      return timer;
+      // Store timer on window so hot reloads/cancels don't leak
+      window.__letterSpawnTimer && clearTimeout(window.__letterSpawnTimer);
+      window.__letterSpawnTimer = t;
     };
 
-    const timer = spawnLetter();
-    return () => clearTimeout(timer);
-  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length, activeLetters.length]);
+    planNext();
+    return () => { cancelled = true; window.__letterSpawnTimer && clearTimeout(window.__letterSpawnTimer); };
+  }, [pet.hunger, pet.happiness, pet.energy, collectedLetters.length]);
 
   // Handle pet interactions
   const handleFeed = useCallback(() => {
